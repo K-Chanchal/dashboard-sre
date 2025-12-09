@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRE Dashboard - Live Monitoring</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🔴 SRE LIVE DASHBOARD</h1>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">ONLINE</span>
+                    <span class="stat-value online" id="stat-online">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">WARNING</span>
+                    <span class="stat-value warning" id="stat-warning">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">CRITICAL</span>
+                    <span class="stat-value critical" id="stat-critical">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">OFFLINE</span>
+                    <span class="stat-value offline" id="stat-offline">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">LAST UPDATE</span>
+                    <span class="stat-value" id="last-update">-</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- News Ticker Section -->
+        <div class="ticker-section">
+            <div class="ticker-label">
+                BREAKING
+            </div>
+            <div class="ticker-wrapper">
+                <div class="ticker-content" id="ticker-content">
+                    <!-- Ticker items will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid" id="dashboard-grid">
+            <!-- Server cards will be dynamically inserted here -->
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-text">
+                Auto-refresh: <span id="refresh-timer">5s</span> |
+                Total Servers: <span id="total-servers">-</span> |
+                Avg CPU: <span id="avg-cpu">-</span>% |
+                Avg Memory: <span id="avg-memory">-</span>%
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
