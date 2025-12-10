@@ -3,68 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRE Dashboard - Live Monitoring</title>
+    <title>SRE Monitoring Dashboard</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <header class="header">
-            <div class="logo">
-                <h1>🔴 SRE LIVE DASHBOARD</h1>
-            </div>
-            <div class="stats-bar">
-                <div class="stat-item">
-                    <span class="stat-label">ONLINE</span>
-                    <span class="stat-value online" id="stat-online">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">WARNING</span>
-                    <span class="stat-value warning" id="stat-warning">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">CRITICAL</span>
-                    <span class="stat-value critical" id="stat-critical">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">OFFLINE</span>
-                    <span class="stat-value offline" id="stat-offline">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">LAST UPDATE</span>
-                    <span class="stat-value" id="last-update">-</span>
-                </div>
+            <h1>🔴 SRE MONITORING DASHBOARD</h1>
+            <div class="header-info">
+                <span id="current-month-year">-</span> |
+                Last Update: <span id="last-update">-</span>
             </div>
         </header>
 
-        <!-- News Ticker Section -->
-        <div class="ticker-section">
-            <div class="ticker-label">
-                BREAKING
+        <div class="main-content">
+            <!-- Left Side: Usage & Overages -->
+            <div class="left-panel">
+                <div class="panel-header">
+                    <h2>📊 USAGE & OVERAGES</h2>
+                </div>
+
+                <!-- AWS S3 Buckets -->
+                <div class="usage-section">
+                    <h3>AWS S3 Buckets</h3>
+                    <div class="table-container">
+                        <table id="s3-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Bucket Name</th>
+                                    <th>Size (MB)</th>
+                                    <th>Retention</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" class="loading">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cloudflare R2 Storage -->
+                <div class="usage-section">
+                    <h3>Cloudflare R2 Storage</h3>
+                    <div class="r2-cards">
+                        <div class="r2-card">
+                            <div class="r2-label">Object Count</div>
+                            <div id="r2-object-count" class="r2-value">-</div>
+                        </div>
+                        <div class="r2-card">
+                            <div class="r2-label">Payload Size (TB)</div>
+                            <div id="r2-payload" class="r2-value">-</div>
+                            <div id="r2-payload-percent" class="r2-percent">-</div>
+                        </div>
+                        <div class="r2-card">
+                            <div class="r2-label">Class A Requests (MM)</div>
+                            <div id="r2-class-a" class="r2-value">-</div>
+                            <div id="r2-class-a-percent" class="r2-percent">-</div>
+                        </div>
+                        <div class="r2-card">
+                            <div class="r2-label">Class B Requests (MM)</div>
+                            <div id="r2-class-b" class="r2-value">-</div>
+                            <div id="r2-class-b-percent" class="r2-percent">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cloudflare Zone Bandwidth -->
+                <div class="usage-section">
+                    <h3>Cloudflare Zone Bandwidth</h3>
+                    <div class="table-container">
+                        <table id="zone-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Zone Name</th>
+                                    <th>Bandwidth (TB)</th>
+                                    <th>Requests (M)</th>
+                                    <th>China</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="loading">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="ticker-wrapper">
-                <div class="ticker-content" id="ticker-content">
-                    <!-- Ticker items will be dynamically inserted here -->
+
+            <!-- Right Side: Server Status -->
+            <div class="right-panel">
+                <div class="panel-header">
+                    <h2 id="server-type-title" class="animated-title">🖥️ RP SERVERS</h2>
+                </div>
+                <div id="server-status-message" class="status-message"></div>
+                <div class="table-container">
+                    <table id="server-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Server Name</th>
+                                <th>Type</th>
+                                <th>Env</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                                <th>Incident ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-
-        <!-- Main Dashboard Grid -->
-        <div class="dashboard-grid" id="dashboard-grid">
-            <!-- Server cards will be dynamically inserted here -->
-        </div>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-text">
-                Auto-refresh: <span id="refresh-timer">5s</span> |
-                Total Servers: <span id="total-servers">-</span> |
-                Avg CPU: <span id="avg-cpu">-</span>% |
-                Avg Memory: <span id="avg-memory">-</span>%
-            </div>
-        </footer>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
