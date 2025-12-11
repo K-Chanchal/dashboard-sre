@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test - SRE Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .correct { background: #d4edda; }
+        .wrong { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>API Cache Test</h1>
+    <button onclick="testAPI()">Test API Now</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Fetching data...</p>';
+
+            try {
+                // Force fresh data with timestamp
+                const timestamp = new Date().getTime();
+                const response = await fetch(`http://localhost:3000/api/monitoring/usage?_=${timestamp}`);
+                const data = await response.json();
+
+                // Calculate bandwidth
+                let comBW = 0;
+                let chinaBW = 0;
+                data.cloudflare_zones.forEach(z => {
+                    const bw = parseFloat(z.Bandwidth_TB) || 0;
+                    if(z.Is_China === 0 || z.Is_China === '0') {
+                        comBW += bw;
+                    } else if(z.Is_China === 1 || z.Is_China === '1') {
+                        chinaBW += bw;
+                    }
+                });
+
+                const comPercent = (comBW / 120 * 100).toFixed(2);
+                const chinaPercent = (chinaBW / 5 * 100).toFixed(2);
+
+                const comClass = comPercent === '34.80' ? 'correct' : 'wrong';
+                const chinaClass = chinaPercent === '29.90' ? 'correct' : 'wrong';
+
+                resultsDiv.innerHTML = `
+                    <div class="result ${comClass}">
+                        <h3>.com Bandwidth</h3>
+                        <p>Total: ${comBW.toFixed(4)} TB</p>
+                        <p>Percentage: ${comPercent}%</p>
+                        <p>Expected: 34.80%</p>
+                        <p>Status: ${comPercent === '34.80' ? '✓ CORRECT' : '✗ WRONG'}</p>
+                    </div>
+                    <div class="result ${chinaClass}">
+                        <h3>China Bandwidth</h3>
+                        <p>Total: ${chinaBW.toFixed(4)} TB</p>
+                        <p>Percentage: ${chinaPercent}%</p>
+                        <p>Expected: 29.90%</p>
+                        <p>Status: ${chinaPercent === '29.90' ? '✓ CORRECT' : '✗ WRONG'}</p>
+                    </div>
+                    <div class="result">
+                        <h3>API Details</h3>
+                        <p>Total zones: ${data.cloudflare_zones.length}</p>
+                        <p>Timestamp: ${new Date().toLocaleString()}</p>
+                        <p>Cache-buster: ${timestamp}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="result wrong"><p>Error: ${error.message}</p></div>`;
+            }
+        }
+
+        // Auto-run on page load
+        window.onload = testAPI;
+    </script>
+</body>
+</html>

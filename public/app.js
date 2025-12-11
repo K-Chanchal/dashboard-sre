@@ -44,9 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // Fetch all data
 async function fetchAllData() {
     try {
+        // Add cache-busting timestamp to force fresh data
+        const timestamp = new Date().getTime();
         const [serverResponse, usageResponse] = await Promise.all([
-            fetch(`${API_BASE_URL}/monitoring/servers`),
-            fetch(`${API_BASE_URL}/monitoring/usage`)
+            fetch(`${API_BASE_URL}/monitoring/servers?_=${timestamp}`),
+            fetch(`${API_BASE_URL}/monitoring/usage?_=${timestamp}`)
         ]);
 
         if (!serverResponse.ok || !usageResponse.ok) {
@@ -102,7 +104,8 @@ function updateUsageData(data) {
     // Update Zone thresholds from database
     if (data.cloudflare_zone_thresholds && data.cloudflare_zone_thresholds.length > 0) {
         data.cloudflare_zone_thresholds.forEach(threshold => {
-            if (threshold.Is_China === 1) {
+            // Convert Is_China to number for comparison (can be string or number from API)
+            if (parseInt(threshold.Is_China) === 1) {
                 ZONE_THRESHOLDS.china = {
                     bandwidth_tb: parseFloat(threshold.Bandwidth_TB) || 5,
                     requests_m: parseFloat(threshold.Requests_M) || 1200
