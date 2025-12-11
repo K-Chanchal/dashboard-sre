@@ -206,7 +206,6 @@ function updateFailureBanner() {
     const failureBanner = document.getElementById('failure-banner');
     const failureList = document.getElementById('failure-list');
     const failureDetails = document.getElementById('failure-details');
-    const toggleBtn = document.getElementById('toggle-details-btn');
 
     const failuresByType = {};
 
@@ -253,18 +252,8 @@ function updateFailureBanner() {
             failureList.appendChild(chip);
         });
 
-        // Build detailed failure table
+        // Build detailed failure table (always visible)
         buildFailureDetailsTable(failuresByType, failureDetails);
-
-        // Setup toggle button
-        toggleBtn.onclick = () => {
-            failureDetails.classList.toggle('expanded');
-            if (failureDetails.classList.contains('expanded')) {
-                toggleBtn.textContent = 'Hide Details ▲';
-            } else {
-                toggleBtn.textContent = 'Show Details ▼';
-            }
-        };
     } else {
         failureBanner.style.display = 'none';
     }
