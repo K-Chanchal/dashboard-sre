@@ -253,11 +253,18 @@ app.get('/api/monitoring/usage', async (req, res) => {
             ORDER BY CAST(Bandwidth_TB AS DECIMAL) DESC
         `, [currentYear, currentMonthShort]);
 
+        // Get Zone thresholds for China and .com
+        const [zoneThresholds] = await db.query(`
+            SELECT Requests_M, Bandwidth_TB, Is_China
+            FROM ZoneThreshold
+        `);
+
         res.json({
             s3_buckets: s3Usage,
             cloudflare_r2: r2Usage,
             cloudflare_r2_thresholds: r2Thresholds.length > 0 ? r2Thresholds[0] : null,
             cloudflare_zones: zoneUsage,
+            cloudflare_zone_thresholds: zoneThresholds,
             current_month: currentMonthLong,
             current_year: currentYear
         });

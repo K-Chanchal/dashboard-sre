@@ -10,6 +10,13 @@ let R2_THRESHOLDS = {
     class_b_mm: 600      // Default 600 MM requests threshold
 };
 
+// Zone Thresholds (will be loaded from database)
+let ZONE_THRESHOLDS = {
+    china: { bandwidth_tb: 5, requests_m: 1200 },
+    com: { bandwidth_tb: 120, requests_m: 1200 },
+    all_requests_m: 1200  // Unified threshold for all requests
+};
+
 let refreshTimer;
 let serverRotationTimer;
 let currentServerTypeIndex = 0;
@@ -83,7 +90,7 @@ function updateLastUpdate() {
 
 // Update usage data section
 function updateUsageData(data) {
-    // Update thresholds from database
+    // Update R2 thresholds from database
     if (data.cloudflare_r2_thresholds) {
         R2_THRESHOLDS = {
             payload_tb: parseFloat(data.cloudflare_r2_thresholds.PAYLOAD_SIZE_TB) || 80,
@@ -92,9 +99,28 @@ function updateUsageData(data) {
         };
     }
 
+    // Update Zone thresholds from database
+    if (data.cloudflare_zone_thresholds && data.cloudflare_zone_thresholds.length > 0) {
+        data.cloudflare_zone_thresholds.forEach(threshold => {
+            if (threshold.Is_China === 1) {
+                ZONE_THRESHOLDS.china = {
+                    bandwidth_tb: parseFloat(threshold.Bandwidth_TB) || 5,
+                    requests_m: parseFloat(threshold.Requests_M) || 1200
+                };
+            } else {
+                ZONE_THRESHOLDS.com = {
+                    bandwidth_tb: parseFloat(threshold.Bandwidth_TB) || 120,
+                    requests_m: parseFloat(threshold.Requests_M) || 1200
+                };
+            }
+        });
+        // Use the requests_m from either record as the unified threshold for all requests
+        ZONE_THRESHOLDS.all_requests_m = ZONE_THRESHOLDS.china.requests_m;
+    }
+
     updateS3Table(data.s3_buckets);
     updateR2Cards(data.cloudflare_r2);
-    updateZoneTable(data.cloudflare_zones);
+    updateZoneCards(data.cloudflare_zones);
 }
 
 // Update S3 bucket table (top 10)
@@ -122,15 +148,11 @@ function updateS3Table(buckets) {
 // Update R2 cards with threshold-based coloring
 function updateR2Cards(data) {
     if (!data || data.length === 0) {
-        document.getElementById('r2-object-count').textContent = 'No data';
+        document.getElementById('r2-payload').textContent = 'No data';
         return;
     }
 
     const r2Data = data[0];
-
-    // Object Count
-    document.getElementById('r2-object-count').textContent =
-        formatNumber(r2Data.OBJECT_COUNT);
 
     // Payload Size
     const payloadTB = parseFloat(r2Data.PAYLOAD_SIZE_TB) || 0;
@@ -166,32 +188,49 @@ function updatePercentageDisplay(elementId, percentage) {
     }
 }
 
-// Update Cloudflare Zone table (top 10)
-function updateZoneTable(zones) {
-    const tbody = document.querySelector('#zone-table tbody');
-    tbody.innerHTML = '';
-
+// Update Cloudflare Zone cards with threshold-based coloring
+function updateZoneCards(zones) {
     if (!zones || zones.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="no-data">No data available</td></tr>';
+        document.getElementById('zone-bandwidth-china').textContent = 'No data';
+        document.getElementById('zone-bandwidth-com').textContent = 'No data';
+        document.getElementById('zone-requests-all').textContent = 'No data';
         return;
     }
 
-    zones.slice(0, 10).forEach(zone => {
-        const bandwidthTB = parseFloat(zone.Bandwidth_TB) || 0;
-        const percentage = (bandwidthTB / 10) * 100; // Assuming 10TB threshold
-        const colorClass = getColorClass(percentage);
+    // Aggregate data - bandwidth split by is_china, requests get all data
+    let chinaBandwidth = 0;
+    let comBandwidth = 0;
+    let allRequests = 0;
 
-        const row = document.createElement('tr');
-        row.className = `status-${colorClass}`;
-        row.innerHTML = `
-            <td>${zone.Account_Name || '-'}</td>
-            <td>${zone.Zone_Name || '-'}</td>
-            <td>${bandwidthTB.toFixed(4)}</td>
-            <td>${zone.Requests_M || '0'}</td>
-            <td>${zone.Is_China || 'No'}</td>
-        `;
-        tbody.appendChild(row);
+    zones.forEach(zone => {
+        const bandwidth = parseFloat(zone.Bandwidth_TB) || 0;
+        const requests = parseFloat(zone.Requests_M) || 0;
+
+        // For bandwidth, split by is_china flag
+        if (zone.Is_China === 1 || zone.Is_China === '1') {
+            chinaBandwidth += bandwidth;
+        } else {
+            comBandwidth += bandwidth;
+        }
+
+        // For requests, aggregate all data without checking is_china
+        allRequests += requests;
     });
+
+    // Update All Requests (first position)
+    const allRequestsPercent = (allRequests / ZONE_THRESHOLDS.all_requests_m) * 100;
+    document.getElementById('zone-requests-all').textContent = `${allRequests.toFixed(2)} M`;
+    updatePercentageDisplay('zone-requests-all-percent', allRequestsPercent);
+
+    // Update .com Bandwidth
+    const comBandwidthPercent = (comBandwidth / ZONE_THRESHOLDS.com.bandwidth_tb) * 100;
+    document.getElementById('zone-bandwidth-com').textContent = `${comBandwidth.toFixed(2)} TB`;
+    updatePercentageDisplay('zone-bandwidth-com-percent', comBandwidthPercent);
+
+    // Update China Bandwidth
+    const chinaBandwidthPercent = (chinaBandwidth / ZONE_THRESHOLDS.china.bandwidth_tb) * 100;
+    document.getElementById('zone-bandwidth-china').textContent = `${chinaBandwidth.toFixed(2)} TB`;
+    updatePercentageDisplay('zone-bandwidth-china-percent', chinaBandwidthPercent);
 }
 
 // Get color class based on percentage

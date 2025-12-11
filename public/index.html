@@ -33,28 +33,51 @@
                     <h2>📊 USAGE & OVERAGES</h2>
                 </div>
 
-                <!-- Cloudflare R2 Storage -->
-                <div class="usage-section">
-                    <h3>Cloudflare R2 Storage</h3>
-                    <div class="r2-cards">
-                        <div class="r2-card">
-                            <div class="r2-label">Object Count</div>
-                            <div id="r2-object-count" class="r2-value">-</div>
+                <!-- Cloudflare -->
+                <div class="usage-section cloudflare-section">
+                    <h3>Cloudflare</h3>
+
+                    <!-- R2 Storage Subsection -->
+                    <div class="cloudflare-subsection">
+                        <h4>R2 Storage</h4>
+                        <div class="r2-cards">
+                            <div class="r2-card">
+                                <div class="r2-label">Payload Size (TB)</div>
+                                <div id="r2-payload" class="r2-value">-</div>
+                                <div id="r2-payload-percent" class="r2-percent">-</div>
+                            </div>
+                            <div class="r2-card">
+                                <div class="r2-label">Class A Requests (MM)</div>
+                                <div id="r2-class-a" class="r2-value">-</div>
+                                <div id="r2-class-a-percent" class="r2-percent">-</div>
+                            </div>
+                            <div class="r2-card">
+                                <div class="r2-label">Class B Requests (MM)</div>
+                                <div id="r2-class-b" class="r2-value">-</div>
+                                <div id="r2-class-b-percent" class="r2-percent">-</div>
+                            </div>
                         </div>
-                        <div class="r2-card">
-                            <div class="r2-label">Payload Size (TB)</div>
-                            <div id="r2-payload" class="r2-value">-</div>
-                            <div id="r2-payload-percent" class="r2-percent">-</div>
-                        </div>
-                        <div class="r2-card">
-                            <div class="r2-label">Class A Requests (MM)</div>
-                            <div id="r2-class-a" class="r2-value">-</div>
-                            <div id="r2-class-a-percent" class="r2-percent">-</div>
-                        </div>
-                        <div class="r2-card">
-                            <div class="r2-label">Class B Requests (MM)</div>
-                            <div id="r2-class-b" class="r2-value">-</div>
-                            <div id="r2-class-b-percent" class="r2-percent">-</div>
+                    </div>
+
+                    <!-- Zone Bandwidth Subsection -->
+                    <div class="cloudflare-subsection">
+                        <h4>Zone Bandwidth</h4>
+                        <div class="zone-cards">
+                            <div class="zone-card">
+                                <div class="zone-label">Requests All (M)</div>
+                                <div id="zone-requests-all" class="zone-value">-</div>
+                                <div id="zone-requests-all-percent" class="zone-percent">-</div>
+                            </div>
+                            <div class="zone-card">
+                                <div class="zone-label">Bandwidth .com (TB)</div>
+                                <div id="zone-bandwidth-com" class="zone-value">-</div>
+                                <div id="zone-bandwidth-com-percent" class="zone-percent">-</div>
+                            </div>
+                            <div class="zone-card">
+                                <div class="zone-label">Bandwidth China (TB)</div>
+                                <div id="zone-bandwidth-china" class="zone-value">-</div>
+                                <div id="zone-bandwidth-china-percent" class="zone-percent">-</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -74,27 +97,6 @@
                             </thead>
                             <tbody>
                                 <tr><td colspan="4" class="loading">Loading...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Cloudflare Zone Bandwidth -->
-                <div class="usage-section">
-                    <h3>Cloudflare Zone Bandwidth</h3>
-                    <div class="table-container">
-                        <table id="zone-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Account</th>
-                                    <th>Zone Name</th>
-                                    <th>Bandwidth (TB)</th>
-                                    <th>Requests (M)</th>
-                                    <th>China</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="5" class="loading">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
