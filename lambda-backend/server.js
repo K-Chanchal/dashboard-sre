@@ -139,14 +139,21 @@ app.get('/api/monitoring/usage', async (req, res) => {
             WHERE YEAR = ? AND MONTH = ?
         `, [currentYear.toString(), currentMonthLong]);
 
-        // Get Cloudflare Zone usage
+        // Get Cloudflare Zone usage (latest record per zone for current month)
         const [zoneUsage] = await db.query(`
-            SELECT Account_Name, Zone_Name, Requests_M, Bandwidth_TB,
-                   Is_China, refresh_time_ist
-            FROM cloudflare_zone_usage
-            WHERE Year = ? AND Month = ?
-            ORDER BY CAST(Bandwidth_TB AS DECIMAL) DESC
-        `, [currentYear, currentMonthShort]);
+            SELECT czu.Account_Name, czu.Zone_Name, czu.Requests_M, czu.Bandwidth_TB,
+                   czu.Is_China, czu.refresh_time_ist
+            FROM cloudflare_zone_usage czu
+            INNER JOIN (
+                SELECT Zone_Name, MAX(refresh_time_ist) as max_refresh_time
+                FROM cloudflare_zone_usage
+                WHERE Year = ? AND Month = ?
+                GROUP BY Zone_Name
+            ) latest ON czu.Zone_Name = latest.Zone_Name
+                    AND czu.refresh_time_ist = latest.max_refresh_time
+            WHERE czu.Year = ? AND czu.Month = ?
+            ORDER BY CAST(czu.Bandwidth_TB AS DECIMAL) DESC
+        `, [currentYear, currentMonthShort, currentYear, currentMonthShort]);
 
         // Get Zone thresholds
         const [zoneThresholds] = await db.query(`
