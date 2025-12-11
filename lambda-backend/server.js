@@ -169,12 +169,21 @@ app.get('/api/monitoring/usage', async (req, res) => {
             FROM ZoneThreshold
         `);
 
+        // Get AWS Cost Report for current month
+        const [awsCosts] = await db.query(`
+            SELECT account_name, account_id, baseline_cost, current_cost
+            FROM aws_cost_report
+            WHERE year = ? AND month = ?
+            ORDER BY CAST(current_cost AS DECIMAL) DESC
+        `, [currentYear, currentMonthLong]);
+
         res.json({
             s3_buckets: s3Usage,
             cloudflare_r2: r2Usage,
             cloudflare_r2_thresholds: r2Thresholds.length > 0 ? r2Thresholds[0] : null,
             cloudflare_zones: zoneUsage,
             cloudflare_zone_thresholds: zoneThresholds,
+            aws_costs: awsCosts,
             current_month: currentMonthLong,
             current_year: currentYear
         });

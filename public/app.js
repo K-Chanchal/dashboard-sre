@@ -121,28 +121,39 @@ function updateUsageData(data) {
         ZONE_THRESHOLDS.all_requests_m = ZONE_THRESHOLDS.china.requests_m;
     }
 
-    updateS3Table(data.s3_buckets);
     updateR2Cards(data.cloudflare_r2);
     updateZoneCards(data.cloudflare_zones);
+    updateAWSCostTable(data.aws_costs);
 }
 
-// Update S3 bucket table (top 10)
-function updateS3Table(buckets) {
-    const tbody = document.querySelector('#s3-table tbody');
+// Update AWS Cost table with percentage-based color coding
+function updateAWSCostTable(costs) {
+    const tbody = document.querySelector('#aws-cost-table tbody');
     tbody.innerHTML = '';
 
-    if (!buckets || buckets.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="no-data">No data available</td></tr>';
+    if (!costs || costs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="no-data">No data available</td></tr>';
         return;
     }
 
-    buckets.slice(0, 10).forEach(bucket => {
+    costs.forEach(account => {
+        const currentCost = parseFloat(account.current_cost) || 0;
+        const baselineCost = parseFloat(account.baseline_cost) || 0;
+        const percentage = baselineCost > 0 ? (currentCost / baselineCost) * 100 : 0;
+
+        // Color coding: Green (<75%), Yellow (75-80%), Red (>80%)
+        let colorClass = 'green';
+        if (percentage >= 80) {
+            colorClass = 'red';
+        } else if (percentage >= 75) {
+            colorClass = 'yellow';
+        }
+
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${bucket.Account_Name || '-'}</td>
-            <td>${bucket.Bucket_Name || '-'}</td>
-            <td>${bucket.Size_MB || '0'}</td>
-            <td>${bucket.Retention || '-'}</td>
+            <td>${account.account_name || '-'}</td>
+            <td>$${currentCost.toFixed(2)}</td>
+            <td class="${colorClass}">${percentage.toFixed(1)}%</td>
         `;
         tbody.appendChild(row);
     });
