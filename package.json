@@ -1,0 +1,26 @@
+{
+  "name": "dashboard-sre",
+  "version": "1.0.0",
+  "description": "SRE Dashboard with monitoring and usage tracking",
+  "main": "lambda-backend/server.js",
+  "scripts": {
+    "start": "node lambda-backend/server.js",
+    "dev": "nodemon lambda-backend/server.js"
+  },
+  "keywords": [
+    "sre",
+    "dashboard",
+    "monitoring"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

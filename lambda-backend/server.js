@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,6 +10,9 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Database connection pool
 let pool;
@@ -123,46 +127,52 @@ app.get('/api/monitoring/servers', async (req, res) => {
 
         // Get RP Servers
         const [rpServers] = await db.query(`
-            SELECT r.*, s.* FROM rp_server_details r
-            LEFT JOIN servers s ON r.ID = s.ID
-            WHERE s.SERVER_TYPE = 'RP'
+            SELECT r.*, s.SERVER_NAME, s.TYPE, s.ENV, s.LAST_REFRESH_TIME
+            FROM rp_server_details r
+            LEFT JOIN servers s ON r.server_id = s.id
+            WHERE s.TYPE = 'RP'
         `);
 
         // Get AEM Servers
         const [aemServers] = await db.query(`
-            SELECT a.*, s.* FROM AEM_server_details a
-            LEFT JOIN servers s ON a.ID = s.ID
-            WHERE s.SERVER_TYPE = 'AEM'
+            SELECT a.*, s.SERVER_NAME, s.TYPE, s.ENV, s.LAST_REFRESH_TIME
+            FROM AEM_server_details a
+            LEFT JOIN servers s ON a.server_id = s.id
+            WHERE s.TYPE = 'AEM'
         `);
 
         // Get EESOF Applications
         const [eesofApps] = await db.query(`
-            SELECT e.*, s.* FROM eesof_app_details e
-            LEFT JOIN servers s ON e.ID = s.ID
-            WHERE s.SERVER_TYPE = 'EESOF'
+            SELECT e.*, s.SERVER_NAME, s.TYPE, s.ENV, s.LAST_REFRESH_TIME
+            FROM eesof_app_details e
+            LEFT JOIN servers s ON e.server_id = s.id
+            WHERE s.TYPE = 'EESOF'
         `);
 
         // Get Ruby Applications
         const [rubyApps] = await db.query(`
-            SELECT r.*, s.* FROM ruby_apps r
-            LEFT JOIN servers s ON r.ID = s.ID
-            WHERE s.SERVER_TYPE = 'RUBY'
+            SELECT r.*, s.SERVER_NAME, s.TYPE, s.ENV, s.LAST_REFRESH_TIME
+            FROM ruby_apps r
+            LEFT JOIN servers s ON r.server_id = s.id
+            WHERE s.TYPE = 'RUBY'
         `);
 
         // Get Ping Monitor
         const [pingMonitor] = await db.query(`
             SELECT * FROM ping_monitor_status
+            ORDER BY last_checked DESC
         `);
 
         // Get New Relic Monitors
         const [newRelicMonitors] = await db.query(`
-            SELECT n.*, s.* FROM new_relic_details n
-            LEFT JOIN servers s ON n.ID = s.ID
+            SELECT * FROM new_relic_details
+            ORDER BY LAST_REFRESH_TIME DESC
         `);
 
         // Get SSL Certificates
         const [sslCerts] = await db.query(`
             SELECT * FROM ssl_certificates
+            ORDER BY DAYS_REMAINING ASC
         `);
 
         res.json({
@@ -248,7 +258,8 @@ app.get('/health', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`✓ Backend server running on http://localhost:${PORT}`);
-    console.log(`✓ API endpoints available at http://localhost:${PORT}/api`);
-    console.log(`✓ Health check: http://localhost:${PORT}/health`);
+    console.log(`\n✓ SRE Dashboard Server running on http://localhost:${PORT}`);
+    console.log(`✓ Dashboard UI: http://localhost:${PORT}`);
+    console.log(`✓ API endpoints: http://localhost:${PORT}/api`);
+    console.log(`✓ Health check: http://localhost:${PORT}/health\n`);
 });
