@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAllData();
     startAutoRefresh();
     startServerTypeRotation();
+    setupNavigationButtons();
 });
 
 // Fetch all data
@@ -49,6 +50,7 @@ async function fetchAllData() {
         const usageData = await usageResponse.json();
 
         updateUsageData(usageData);
+        updateFailureBanner();
         updateServerDisplay();
         updateLastUpdate();
     } catch (error) {
@@ -197,6 +199,152 @@ function getColorClass(percentage) {
     if (percentage > 80) return 'red';
     if (percentage >= 75) return 'yellow';
     return 'green';
+}
+
+// Update failure banner with all failing server types
+function updateFailureBanner() {
+    const failureBanner = document.getElementById('failure-banner');
+    const failureList = document.getElementById('failure-list');
+    const failureDetails = document.getElementById('failure-details');
+    const toggleBtn = document.getElementById('toggle-details-btn');
+
+    const failuresByType = {};
+
+    // Check each server type for failures
+    SERVER_TYPES.forEach((serverType, index) => {
+        const servers = serverData[serverType] || [];
+        const failedServers = servers.filter(server => !isServerSuccess(server, serverType));
+
+        if (failedServers.length > 0) {
+            failuresByType[serverType] = {
+                count: failedServers.length,
+                index: index,
+                servers: failedServers
+            };
+        }
+    });
+
+    // Show or hide banner based on failures
+    if (Object.keys(failuresByType).length > 0) {
+        failureBanner.style.display = 'block';
+        failureList.innerHTML = '';
+        failureDetails.innerHTML = '';
+
+        // Create chips for each failing server type
+        Object.entries(failuresByType).forEach(([serverType, data]) => {
+            const chip = document.createElement('div');
+            chip.className = 'failure-chip';
+            chip.innerHTML = `
+                <span>${serverType.toUpperCase()}</span>
+                <span class="count">${data.count}</span>
+            `;
+
+            // Click to navigate to that server type
+            chip.addEventListener('click', () => {
+                currentServerTypeIndex = data.index;
+                updateServerDisplay();
+                stopServerTypeRotation();
+                clearTimeout(window.navigationTimeout);
+                window.navigationTimeout = setTimeout(() => {
+                    startServerTypeRotation();
+                }, 60000);
+            });
+
+            failureList.appendChild(chip);
+        });
+
+        // Build detailed failure table
+        buildFailureDetailsTable(failuresByType, failureDetails);
+
+        // Setup toggle button
+        toggleBtn.onclick = () => {
+            failureDetails.classList.toggle('expanded');
+            if (failureDetails.classList.contains('expanded')) {
+                toggleBtn.textContent = 'Hide Details ▲';
+            } else {
+                toggleBtn.textContent = 'Show Details ▼';
+            }
+        };
+    } else {
+        failureBanner.style.display = 'none';
+    }
+}
+
+// Build detailed failure table
+function buildFailureDetailsTable(failuresByType, container) {
+    Object.entries(failuresByType).forEach(([serverType, data]) => {
+        const section = document.createElement('div');
+        section.className = 'failure-section';
+
+        const title = document.createElement('div');
+        title.className = 'failure-section-title';
+        title.innerHTML = `
+            <span>${serverType.toUpperCase()}</span>
+            <span class="failure-count-badge">${data.count} Failed</span>
+        `;
+        section.appendChild(title);
+
+        // Create table
+        const table = document.createElement('table');
+        table.className = 'failure-details-table';
+
+        // Table header
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+            <tr>
+                <th>Server Name</th>
+                <th>Type</th>
+                <th>Env</th>
+                <th>Status</th>
+                <th>Details</th>
+                <th>Incident ID</th>
+            </tr>
+        `;
+        table.appendChild(thead);
+
+        // Table body with failed servers
+        const tbody = document.createElement('tbody');
+        data.servers.forEach(server => {
+            const row = createFailureDetailRow(server, serverType);
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+
+        section.appendChild(table);
+        container.appendChild(section);
+    });
+}
+
+// Create failure detail row
+function createFailureDetailRow(server, serverType) {
+    const row = document.createElement('tr');
+
+    const serverName = server.SERVER_NAME || server.hostname || server.MONITOR_NAME ||
+                       server.HOST || 'Unknown';
+    const type = server.TYPE || '-';
+    const env = server.ENV || '-';
+
+    // Get status
+    let status = server.STATUS || server.APP_STATUS || server.ping_status ||
+                 server.MONITOR_STATUS || '-';
+
+    // Build details column
+    const details = buildServerDetails(server, serverType);
+
+    // Get incident ID
+    const incidentId = (server.INCIDENT_ID && server.INCIDENT_ID !== 'NULL') ?
+                       server.INCIDENT_ID : '-';
+
+    row.innerHTML = `
+        <td>${serverName}</td>
+        <td>${type}</td>
+        <td>${env}</td>
+        <td><span class="status-badge status-failure">${status}</span></td>
+        <td>${details}</td>
+        <td>${incidentId}</td>
+    `;
+
+    return row;
 }
 
 // Update server display for current server type
@@ -376,3 +524,47 @@ window.addEventListener('beforeunload', () => {
     stopAutoRefresh();
     stopServerTypeRotation();
 });
+
+// Setup navigation buttons
+function setupNavigationButtons() {
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
+
+    prevButton.addEventListener('click', () => {
+        navigatePrevious();
+    });
+
+    nextButton.addEventListener('click', () => {
+        navigateNext();
+    });
+}
+
+// Navigate to previous server type
+function navigatePrevious() {
+    // Stop auto-rotation when user manually navigates
+    stopServerTypeRotation();
+
+    currentServerTypeIndex = (currentServerTypeIndex - 1 + SERVER_TYPES.length) % SERVER_TYPES.length;
+    updateServerDisplay();
+
+    // Restart auto-rotation after 1 minute of inactivity
+    clearTimeout(window.navigationTimeout);
+    window.navigationTimeout = setTimeout(() => {
+        startServerTypeRotation();
+    }, 60000);
+}
+
+// Navigate to next server type
+function navigateNext() {
+    // Stop auto-rotation when user manually navigates
+    stopServerTypeRotation();
+
+    currentServerTypeIndex = (currentServerTypeIndex + 1) % SERVER_TYPES.length;
+    updateServerDisplay();
+
+    // Restart auto-rotation after 1 minute of inactivity
+    clearTimeout(window.navigationTimeout);
+    window.navigationTimeout = setTimeout(() => {
+        startServerTypeRotation();
+    }, 60000);
+}

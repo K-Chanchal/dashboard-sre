@@ -16,6 +16,16 @@
             </div>
         </header>
 
+        <!-- Failure Alert Banner -->
+        <div id="failure-banner" class="failure-banner" style="display: none;">
+            <div class="failure-banner-header">
+                <span class="failure-icon">⚠️</span>
+                <span class="failure-title">FAILURES DETECTED</span>
+            </div>
+            <div id="failure-list" class="failure-list"></div>
+            <div id="failure-details" class="failure-details"></div>
+        </div>
+
         <div class="main-content">
             <!-- Left Side: Usage & Overages -->
             <div class="left-panel">
@@ -95,6 +105,10 @@
             <div class="right-panel">
                 <div class="panel-header">
                     <h2 id="server-type-title" class="animated-title">🖥️ RP SERVERS</h2>
+                    <div class="navigation-buttons">
+                        <button id="prev-button" class="nav-button" title="Previous server type">◀ Previous</button>
+                        <button id="next-button" class="nav-button" title="Next server type">Next ▶</button>
+                    </div>
                 </div>
                 <div id="server-status-message" class="status-message"></div>
                 <div class="table-container">

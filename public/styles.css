@@ -32,6 +32,162 @@ body {
     animation: slideDown 0.5s ease-out;
 }
 
+/* Failure Banner */
+.failure-banner {
+    background: rgba(244, 67, 54, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 2px solid rgba(244, 67, 54, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(244, 67, 54, 0.3);
+    animation: flashWarning 2s infinite, slideDown 0.5s ease-out;
+}
+
+.failure-banner-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.failure-icon {
+    font-size: 24px;
+    animation: pulse 1.5s infinite;
+}
+
+.failure-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ff6b6b;
+    text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+.failure-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.failure-chip {
+    background: rgba(244, 67, 54, 0.3);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid rgba(244, 67, 54, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: slideIn 0.5s ease-out;
+}
+
+.failure-chip:hover {
+    background: rgba(244, 67, 54, 0.5);
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+}
+
+.failure-chip .count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Failure Details Table */
+.failure-details {
+    margin-top: 15px;
+    display: none;
+}
+
+.failure-details.expanded {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+}
+
+.failure-section {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid rgba(244, 67, 54, 0.7);
+}
+
+.failure-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ff6b6b;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.failure-section-title .failure-count-badge {
+    background: rgba(244, 67, 54, 0.5);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.failure-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+.failure-details-table thead {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.failure-details-table th {
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    font-size: 12px;
+}
+
+.failure-details-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.failure-details-table tbody tr {
+    background: rgba(244, 67, 54, 0.1);
+    transition: background 0.3s ease;
+}
+
+.failure-details-table tbody tr:hover {
+    background: rgba(244, 67, 54, 0.2);
+}
+
+.toggle-details-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.toggle-details-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
 .header h1 {
     font-size: 28px;
     font-weight: 700;
@@ -67,11 +223,50 @@ body {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .panel-header h2 {
     font-size: 20px;
     font-weight: 600;
+}
+
+/* Navigation Buttons */
+.navigation-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px 0 rgba(102, 126, 234, 0.4);
+}
+
+.nav-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.6);
+}
+
+.nav-button:active {
+    transform: translateY(0);
+}
+
+.nav-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Usage Section */
@@ -311,6 +506,28 @@ body {
     }
 }
 
+@keyframes flashWarning {
+    0%, 100% {
+        background: rgba(244, 67, 54, 0.15);
+        border-color: rgba(244, 67, 54, 0.5);
+    }
+    50% {
+        background: rgba(244, 67, 54, 0.25);
+        border-color: rgba(244, 67, 54, 0.7);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* Scrollbar Styles */
 .left-panel::-webkit-scrollbar,
 .right-panel::-webkit-scrollbar {
@@ -352,6 +569,46 @@ body {
         gap: 10px;
     }
 
+    .failure-banner {
+        padding: 15px;
+    }
+
+    .failure-banner-header {
+        font-size: 14px;
+    }
+
+    .failure-list {
+        gap: 8px;
+    }
+
+    .failure-chip {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .failure-details-table {
+        font-size: 11px;
+    }
+
+    .failure-details-table th,
+    .failure-details-table td {
+        padding: 8px 5px;
+    }
+
+    .failure-section {
+        padding: 12px;
+    }
+
+    .failure-section-title {
+        font-size: 14px;
+        flex-wrap: wrap;
+    }
+
+    .toggle-details-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
     .r2-cards {
         grid-template-columns: 1fr;
     }
@@ -363,5 +620,20 @@ body {
     .data-table th,
     .data-table td {
         padding: 8px 5px;
+    }
+
+    .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .navigation-buttons {
+        width: 100%;
+    }
+
+    .nav-button {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 12px;
     }
 }

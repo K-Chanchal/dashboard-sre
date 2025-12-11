@@ -1,0 +1,22 @@
+{
+  "name": "dashboard-sre-lambda",
+  "version": "1.0.0",
+  "description": "Lambda backend for SRE Dashboard",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "lambda",
+    "sre",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5",
+    "cors": "^2.8.5",
+    "serverless-http": "^3.2.0"
+  }
+}
