@@ -2,7 +2,7 @@
   "name": "dashboard-sre-lambda",
   "version": "1.0.0",
   "description": "Lambda backend for SRE Dashboard",
-  "main": "index.js",
+  "main": "lambda.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

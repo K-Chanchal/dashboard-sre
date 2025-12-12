@@ -40,8 +40,8 @@ function getDbPool() {
     return pool;
 }
 
-// Import routes from index.js
-const indexModule = require('./index.js');
+// Import routes from lambda.js
+const indexModule = require('./lambda.js');
 
 // Copy all routes from the Lambda handler
 const serverless = require('serverless-http');
