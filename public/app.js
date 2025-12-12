@@ -339,7 +339,6 @@ function buildFailureDetailsTable(failuresByType, container) {
                 <th>Env</th>
                 <th>Status</th>
                 <th>Details</th>
-                <th>Incident ID</th>
             </tr>
         `;
         table.appendChild(thead);
@@ -373,17 +372,12 @@ function createFailureDetailRow(server, serverType) {
     // Build details column
     const details = buildServerDetails(server, serverType);
 
-    // Get incident ID
-    const incidentId = (server.INCIDENT_ID && server.INCIDENT_ID !== 'NULL') ?
-                       server.INCIDENT_ID : '-';
-
     row.innerHTML = `
         <td>${serverName}</td>
         <td>${type}</td>
         <td>${env}</td>
         <td><span class="status-badge status-failure">${status}</span></td>
         <td>${details}</td>
-        <td>${incidentId}</td>
     `;
 
     return row;
@@ -414,7 +408,7 @@ function updateServerDisplay() {
         messageElement.className = 'status-message success-message';
 
         const row = document.createElement('tr');
-        row.innerHTML = '<td colspan="6" class="all-success">✓ All systems operational</td>';
+        row.innerHTML = '<td colspan="5" class="all-success">✓ All systems operational</td>';
         tbody.appendChild(row);
     } else {
         // Show failed servers
@@ -470,17 +464,12 @@ function createServerRow(server, serverType) {
     // Build details column
     const details = buildServerDetails(server, serverType);
 
-    // Get incident ID
-    const incidentId = (server.INCIDENT_ID && server.INCIDENT_ID !== 'NULL') ?
-                       server.INCIDENT_ID : '-';
-
     row.innerHTML = `
         <td>${serverName}</td>
         <td>${type}</td>
         <td>${env}</td>
         <td><span class="status-badge status-failure">${status}</span></td>
         <td>${details}</td>
-        <td>${incidentId}</td>
     `;
 
     return row;
