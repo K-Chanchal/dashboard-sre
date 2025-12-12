@@ -682,18 +682,18 @@ function renderR2ClassAForecastChart(history, forecast, forecastMonth, forecastD
                     pointRadius: 5,
                     pointBackgroundColor: '#6b7280'
                 },
-                // Forecast High (green)
+                // Forecast High (red)
                 {
                     label: 'High Projection',
                     data: highLine,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
                     borderWidth: 2,
                     borderDash: [8, 4],
                     fill: '+1',
                     pointRadius: 7,
                     pointStyle: 'triangle',
-                    pointBackgroundColor: '#22c55e',
+                    pointBackgroundColor: '#ef4444',
                     tension: 0
                 },
                 // Forecast Mean (blue)
@@ -708,18 +708,18 @@ function renderR2ClassAForecastChart(history, forecast, forecastMonth, forecastD
                     pointBackgroundColor: '#3b82f6',
                     tension: 0
                 },
-                // Forecast Low (red)
+                // Forecast Low (green)
                 {
                     label: 'Low Projection',
                     data: lowLine,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
                     borderWidth: 2,
                     borderDash: [8, 4],
                     fill: '-1',
                     pointRadius: 7,
                     pointStyle: 'rectRot',
-                    pointBackgroundColor: '#ef4444',
+                    pointBackgroundColor: '#22c55e',
                     tension: 0
                 }
             ]
@@ -838,18 +838,18 @@ function renderR2ClassBForecastChart(history, forecast, forecastMonth, forecastD
                     pointRadius: 5,
                     pointBackgroundColor: '#6b7280'
                 },
-                // Forecast High (green)
+                // Forecast High (red)
                 {
                     label: 'High Projection',
                     data: highLine,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
                     borderWidth: 2,
                     borderDash: [8, 4],
                     fill: '+1',
                     pointRadius: 7,
                     pointStyle: 'triangle',
-                    pointBackgroundColor: '#22c55e',
+                    pointBackgroundColor: '#ef4444',
                     tension: 0
                 },
                 // Forecast Mean (blue)
@@ -864,18 +864,18 @@ function renderR2ClassBForecastChart(history, forecast, forecastMonth, forecastD
                     pointBackgroundColor: '#3b82f6',
                     tension: 0
                 },
-                // Forecast Low (red)
+                // Forecast Low (green)
                 {
                     label: 'Low Projection',
                     data: lowLine,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
                     borderWidth: 2,
                     borderDash: [8, 4],
                     fill: '-1',
                     pointRadius: 7,
                     pointStyle: 'rectRot',
-                    pointBackgroundColor: '#ef4444',
+                    pointBackgroundColor: '#22c55e',
                     tension: 0
                 }
             ]
@@ -1054,18 +1054,18 @@ function renderSingleAWSForecastChart(history, forecastData, accountName, foreca
                     pointRadius: 5,
                     pointBackgroundColor: '#6b7280'
                 },
-                // Forecast High (green)
+                // Forecast High (red)
                 {
                     label: 'High Projection',
                     data: highLine,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
                     borderWidth: 2,
                     borderDash: [8, 4],
                     fill: '+1',
                     pointRadius: 7,
                     pointStyle: 'triangle',
-                    pointBackgroundColor: '#22c55e',
+                    pointBackgroundColor: '#ef4444',
                     tension: 0
                 },
                 // Forecast Mean (blue)
@@ -1080,18 +1080,18 @@ function renderSingleAWSForecastChart(history, forecastData, accountName, foreca
                     pointBackgroundColor: '#3b82f6',
                     tension: 0
                 },
-                // Forecast Low (red)
+                // Forecast Low (green)
                 {
                     label: 'Low Projection',
                     data: lowLine,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
                     borderWidth: 2,
                     borderDash: [8, 4],
                     fill: '-1',
                     pointRadius: 7,
                     pointStyle: 'rectRot',
-                    pointBackgroundColor: '#ef4444',
+                    pointBackgroundColor: '#22c55e',
                     tension: 0
                 }
             ]
