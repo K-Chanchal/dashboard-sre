@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SRE Monitoring Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -98,6 +99,35 @@
                                 <tr><td colspan="3" class="loading">Loading...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Forecast Section -->
+                <div class="usage-section forecast-section">
+                    <h3>Month-End Forecast</h3>
+
+                    <!-- AWS Cost Forecast -->
+                    <div class="forecast-subsection">
+                        <h4>AWS Cost Forecast</h4>
+                        <div class="chart-container">
+                            <canvas id="aws-forecast-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Cloudflare R2 Forecast -->
+                    <div class="forecast-subsection">
+                        <h4>Cloudflare R2 Forecast</h4>
+                        <div class="chart-container">
+                            <canvas id="r2-forecast-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Cloudflare Zone Forecast -->
+                    <div class="forecast-subsection">
+                        <h4>Cloudflare Zone Forecast</h4>
+                        <div class="chart-container">
+                            <canvas id="zone-forecast-chart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -21,6 +21,11 @@ let refreshTimer;
 let serverRotationTimer;
 let currentServerTypeIndex = 0;
 let serverData = {};
+let forecastCharts = {
+    aws: null,
+    r2: null,
+    zone: null
+};
 
 const SERVER_TYPES = [
     'rp servers',
@@ -36,6 +41,7 @@ const SERVER_TYPES = [
 document.addEventListener('DOMContentLoaded', () => {
     console.log('SRE Monitoring Dashboard initialized');
     fetchAllData();
+    fetchForecastData();
     startAutoRefresh();
     startServerTypeRotation();
     setupNavigationButtons();
@@ -598,4 +604,371 @@ function navigateNext() {
     window.navigationTimeout = setTimeout(() => {
         startServerTypeRotation();
     }, 60000);
+}
+
+// Fetch forecast data
+async function fetchForecastData() {
+    try {
+        const timestamp = new Date().getTime();
+        const response = await fetch(`${API_BASE_URL}/monitoring/forecast?_=${timestamp}`);
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch forecast data');
+        }
+
+        const data = await response.json();
+        renderForecastCharts(data);
+    } catch (error) {
+        console.error('Error fetching forecast data:', error);
+        showError('Failed to load forecast data');
+    }
+}
+
+// Render forecast charts
+function renderForecastCharts(data) {
+    const { historical, forecast, forecast_month } = data;
+
+    // AWS Cost Forecast Chart
+    renderAWSForecastChart(historical.aws_cost, forecast.aws_cost, forecast_month);
+
+    // Cloudflare R2 Forecast Chart
+    renderR2ForecastChart(historical.cloudflare_r2, forecast.cloudflare_r2, forecast_month);
+
+    // Cloudflare Zone Forecast Chart
+    renderZoneForecastChart(historical.cloudflare_zones, forecast.cloudflare_zones, forecast_month);
+}
+
+// Render AWS Cost Forecast Chart
+function renderAWSForecastChart(history, forecast, forecastMonth) {
+    const ctx = document.getElementById('aws-forecast-chart');
+    if (!ctx) return;
+
+    // Destroy existing chart if it exists
+    if (forecastCharts.aws) {
+        forecastCharts.aws.destroy();
+    }
+
+    // Get unique account names
+    const accountNames = Object.keys(forecast);
+    if (accountNames.length === 0) return;
+
+    // Prepare data for first account (you can extend this to show multiple accounts)
+    const mainAccount = accountNames[0];
+    const labels = history.map(h => `${h.month.substring(0, 3)} ${h.year}`);
+    labels.push(forecastMonth.substring(0, 3));
+
+    const historicalData = history.map(h => {
+        const account = h.data.find(d => d.account_name === mainAccount);
+        return account ? parseFloat(account.current_cost) : null;
+    });
+
+    const forecastData = forecast[mainAccount];
+
+    // Create datasets
+    const datasets = [
+        {
+            label: 'Historical Cost',
+            data: [...historicalData, null],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.4
+        },
+        {
+            label: 'Forecast (High)',
+            data: [...Array(historicalData.length).fill(null), forecastData.high],
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'triangle'
+        },
+        {
+            label: 'Forecast (Mean)',
+            data: [...Array(historicalData.length).fill(null), forecastData.mean],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'circle'
+        },
+        {
+            label: 'Forecast (Low)',
+            data: [...Array(historicalData.length).fill(null), forecastData.low],
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'rect'
+        }
+    ];
+
+    forecastCharts.aws = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `${mainAccount} - Cost Forecast ($)`,
+                    color: '#fff',
+                    font: { size: 14, weight: 'bold' }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { color: '#fff', padding: 10, font: { size: 11 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: $${context.parsed.y?.toFixed(2) || 'N/A'}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#9ca3af',
+                        callback: function(value) {
+                            return '$' + value.toFixed(0);
+                        }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: {
+                    ticks: { color: '#9ca3af' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            }
+        }
+    });
+}
+
+// Render R2 Forecast Chart
+function renderR2ForecastChart(history, forecast, forecastMonth) {
+    const ctx = document.getElementById('r2-forecast-chart');
+    if (!ctx) return;
+
+    if (forecastCharts.r2) {
+        forecastCharts.r2.destroy();
+    }
+
+    const labels = history.map(h => `${h.month.substring(0, 3)} ${h.year}`);
+    labels.push(forecastMonth.substring(0, 3));
+
+    // Payload Size TB data
+    const historicalPayload = history.map(h => h.data ? parseFloat(h.data.PAYLOAD_SIZE_TB) : null);
+
+    const datasets = [
+        {
+            label: 'Historical Payload (TB)',
+            data: [...historicalPayload, null],
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.4,
+            yAxisID: 'y'
+        },
+        {
+            label: 'Forecast High (TB)',
+            data: [...Array(historicalPayload.length).fill(null), forecast.payload_tb.high],
+            borderColor: '#ef4444',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'triangle',
+            yAxisID: 'y'
+        },
+        {
+            label: 'Forecast Mean (TB)',
+            data: [...Array(historicalPayload.length).fill(null), forecast.payload_tb.mean],
+            borderColor: '#10b981',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'circle',
+            yAxisID: 'y'
+        },
+        {
+            label: 'Forecast Low (TB)',
+            data: [...Array(historicalPayload.length).fill(null), forecast.payload_tb.low],
+            borderColor: '#f59e0b',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'rect',
+            yAxisID: 'y'
+        }
+    ];
+
+    forecastCharts.r2 = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'R2 Payload Size Forecast (TB)',
+                    color: '#fff',
+                    font: { size: 14, weight: 'bold' }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { color: '#fff', padding: 10, font: { size: 11 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/A'} TB`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    ticks: {
+                        color: '#9ca3af',
+                        callback: function(value) {
+                            return value.toFixed(1) + ' TB';
+                        }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: {
+                    ticks: { color: '#9ca3af' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            }
+        }
+    });
+}
+
+// Render Zone Forecast Chart
+function renderZoneForecastChart(history, forecast, forecastMonth) {
+    const ctx = document.getElementById('zone-forecast-chart');
+    if (!ctx) return;
+
+    if (forecastCharts.zone) {
+        forecastCharts.zone.destroy();
+    }
+
+    const labels = history.map(h => `${h.month.substring(0, 3)} ${h.year}`);
+    labels.push(forecastMonth.substring(0, 3));
+
+    // Aggregate bandwidth data
+    const historicalComBandwidth = history.map(h => {
+        return h.data.filter(z => z.Is_China === 0 || z.Is_China === '0')
+            .reduce((sum, z) => sum + parseFloat(z.Bandwidth_TB || 0), 0);
+    });
+
+    const datasets = [
+        {
+            label: 'Historical .com Bandwidth (TB)',
+            data: [...historicalComBandwidth, null],
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.4
+        },
+        {
+            label: 'Forecast High (TB)',
+            data: [...Array(historicalComBandwidth.length).fill(null), forecast.com_bandwidth.high],
+            borderColor: '#ef4444',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'triangle'
+        },
+        {
+            label: 'Forecast Mean (TB)',
+            data: [...Array(historicalComBandwidth.length).fill(null), forecast.com_bandwidth.mean],
+            borderColor: '#10b981',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'circle'
+        },
+        {
+            label: 'Forecast Low (TB)',
+            data: [...Array(historicalComBandwidth.length).fill(null), forecast.com_bandwidth.low],
+            borderColor: '#f59e0b',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            pointRadius: 6,
+            pointStyle: 'rect'
+        }
+    ];
+
+    forecastCharts.zone = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Cloudflare .com Bandwidth Forecast (TB)',
+                    color: '#fff',
+                    font: { size: 14, weight: 'bold' }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { color: '#fff', padding: 10, font: { size: 11 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/A'} TB`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#9ca3af',
+                        callback: function(value) {
+                            return value.toFixed(1) + ' TB';
+                        }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: {
+                    ticks: { color: '#9ca3af' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            }
+        }
+    });
 }
