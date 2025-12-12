@@ -298,9 +298,9 @@ app.get('/api/monitoring/forecast', async (req, res) => {
             return monthNames[monthNum - 1];
         };
 
-        // Get last 3 months including current
+        // Get last 5 months including current (for better trend analysis)
         const months = [];
-        for (let i = 2; i >= 0; i--) {
+        for (let i = 4; i >= 0; i--) {
             let month = currentMonth - i;
             let year = currentYear;
             if (month <= 0) {
@@ -441,8 +441,10 @@ app.get('/api/monitoring/forecast', async (req, res) => {
                 cloudflare_r2: r2Forecast,
                 cloudflare_zones: zoneForecast
             },
-            forecast_month: getMonthName(currentMonth % 12 + 1),
-            current_month: getMonthName(currentMonth)
+            forecast_month: getMonthName(currentMonth),
+            forecast_date: new Date(currentYear, currentMonth - 1, new Date(currentYear, currentMonth, 0).getDate()).getDate(),
+            current_month: getMonthName(currentMonth),
+            current_year: currentYear
         });
     } catch (error) {
         console.error('Error fetching forecast data:', error);

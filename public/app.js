@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE_URL = 'https://qnw5w902f4.execute-api.us-west-2.amazonaws.com/default/api';
+const API_BASE_URL = 'http://localhost:3000/api';
 const REFRESH_INTERVAL = 300000; // 5 minutes
 const SERVER_TYPE_ROTATION_INTERVAL = 5000; // 5 seconds
 
@@ -22,9 +22,9 @@ let serverRotationTimer;
 let currentServerTypeIndex = 0;
 let serverData = {};
 let forecastCharts = {
-    aws: null,
-    r2: null,
-    zone: null
+    aws: [],  // Array to store multiple AWS account charts
+    r2ClassA: null,
+    r2ClassB: null
 };
 
 const SERVER_TYPES = [
@@ -626,110 +626,514 @@ async function fetchForecastData() {
 
 // Render forecast charts
 function renderForecastCharts(data) {
-    const { historical, forecast, forecast_month } = data;
+    const { historical, forecast, forecast_month, forecast_date, current_year } = data;
 
-    // AWS Cost Forecast Chart
-    renderAWSForecastChart(historical.aws_cost, forecast.aws_cost, forecast_month);
+    // Cloudflare R2 Class A Operations Forecast
+    renderR2ClassAForecastChart(historical.cloudflare_r2, forecast.cloudflare_r2, forecast_month, forecast_date, current_year);
 
-    // Cloudflare R2 Forecast Chart
-    renderR2ForecastChart(historical.cloudflare_r2, forecast.cloudflare_r2, forecast_month);
+    // Cloudflare R2 Class B Operations Forecast
+    renderR2ClassBForecastChart(historical.cloudflare_r2, forecast.cloudflare_r2, forecast_month, forecast_date, current_year);
 
-    // Cloudflare Zone Forecast Chart
-    renderZoneForecastChart(historical.cloudflare_zones, forecast.cloudflare_zones, forecast_month);
+    // AWS Cost Forecast Charts (one for each account)
+    renderAWSForecastCharts(historical.aws_cost, forecast.aws_cost, forecast_month, forecast_date, current_year);
 }
 
-// Render AWS Cost Forecast Chart
-function renderAWSForecastChart(history, forecast, forecastMonth) {
-    const ctx = document.getElementById('aws-forecast-chart');
+// Render Cloudflare R2 Class A Operations Forecast (Financial Style)
+function renderR2ClassAForecastChart(history, forecast, forecastMonth, forecastDate, currentYear) {
+    const ctx = document.getElementById('r2-class-a-forecast-chart');
     if (!ctx) return;
 
-    // Destroy existing chart if it exists
-    if (forecastCharts.aws) {
-        forecastCharts.aws.destroy();
+    if (forecastCharts.r2ClassA) {
+        forecastCharts.r2ClassA.destroy();
     }
 
-    // Get unique account names
-    const accountNames = Object.keys(forecast);
-    if (accountNames.length === 0) return;
+    // Prepare labels and data - exclude current month from historical
+    const labels = history.slice(0, -1).map(h => `${h.month.substring(0, 3)}\n${h.year}`);
+    const historicalData = history.slice(0, -1).map(h => h.data ? parseFloat(h.data.Class_A_Requests_MM_PutObject) : null);
 
-    // Prepare data for first account (you can extend this to show multiple accounts)
-    const mainAccount = accountNames[0];
-    const labels = history.map(h => `${h.month.substring(0, 3)} ${h.year}`);
-    labels.push(forecastMonth.substring(0, 3));
+    // Add current month with actual partial data
+    const currentMonthData = history[history.length - 1];
+    const currentActual = currentMonthData.data ? parseFloat(currentMonthData.data.Class_A_Requests_MM_PutObject) : null;
+    labels.push(`${forecastMonth.substring(0, 3)}\n${currentYear}\n(Partial)`);
+    historicalData.push(currentActual);
 
-    const historicalData = history.map(h => {
-        const account = h.data.find(d => d.account_name === mainAccount);
-        return account ? parseFloat(account.current_cost) : null;
-    });
+    // Add forecast point for month-end
+    labels.push(`${forecastMonth.substring(0, 3)} ${forecastDate}\n(Forecast)`);
 
-    const forecastData = forecast[mainAccount];
+    // Create forecast lines: show three separate points at Dec 31
+    const highLine = [...Array(historicalData.length).fill(null), forecast.class_a_requests.high];
+    const meanLine = [...Array(historicalData.length).fill(null), forecast.class_a_requests.mean];
+    const lowLine = [...Array(historicalData.length).fill(null), forecast.class_a_requests.low];
 
-    // Create datasets
-    const datasets = [
-        {
-            label: 'Historical Cost',
-            data: [...historicalData, null],
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            borderWidth: 2,
-            fill: false,
-            tension: 0.4
-        },
-        {
-            label: 'Forecast (High)',
-            data: [...Array(historicalData.length).fill(null), forecastData.high],
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'triangle'
-        },
-        {
-            label: 'Forecast (Mean)',
-            data: [...Array(historicalData.length).fill(null), forecastData.mean],
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'circle'
-        },
-        {
-            label: 'Forecast (Low)',
-            data: [...Array(historicalData.length).fill(null), forecastData.low],
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'rect'
-        }
-    ];
-
-    forecastCharts.aws = new Chart(ctx, {
+    forecastCharts.r2ClassA = new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets },
+        data: {
+            labels: labels,
+            datasets: [
+                // Historical actuals (grey line)
+                {
+                    label: 'Actual Operations',
+                    data: [...historicalData, currentActual],
+                    borderColor: '#6b7280',
+                    backgroundColor: 'rgba(107, 116, 128, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#6b7280'
+                },
+                // Forecast High (green)
+                {
+                    label: 'High Projection',
+                    data: highLine,
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    fill: '+1',
+                    pointRadius: 7,
+                    pointStyle: 'triangle',
+                    pointBackgroundColor: '#22c55e',
+                    tension: 0
+                },
+                // Forecast Mean (blue)
+                {
+                    label: 'Mean Projection',
+                    data: meanLine,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderWidth: 3,
+                    fill: false,
+                    pointRadius: 7,
+                    pointBackgroundColor: '#3b82f6',
+                    tension: 0
+                },
+                // Forecast Low (red)
+                {
+                    label: 'Low Projection',
+                    data: lowLine,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    fill: '-1',
+                    pointRadius: 7,
+                    pointStyle: 'rectRot',
+                    pointBackgroundColor: '#ef4444',
+                    tension: 0
+                }
+            ]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: true,
-            aspectRatio: 2,
+            aspectRatio: 2.5,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
                 title: {
-                    display: true,
-                    text: `${mainAccount} - Cost Forecast ($)`,
-                    color: '#fff',
-                    font: { size: 14, weight: 'bold' }
+                    display: false
                 },
                 legend: {
                     display: true,
-                    position: 'bottom',
-                    labels: { color: '#fff', padding: 10, font: { size: 11 } }
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        color: '#e5e7eb',
+                        padding: 15,
+                        font: { size: 12, weight: '500' },
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        boxHeight: 8
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#e5e7eb',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/A'} MM`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        color: '#9ca3af',
+                        font: { size: 11 },
+                        callback: function(value) {
+                            return value.toFixed(0) + ' MM';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(75, 85, 99, 0.3)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#9ca3af',
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        color: 'rgba(75, 85, 99, 0.2)',
+                        drawBorder: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Render Cloudflare R2 Class B Operations Forecast (Financial Style)
+function renderR2ClassBForecastChart(history, forecast, forecastMonth, forecastDate, currentYear) {
+    const ctx = document.getElementById('r2-class-b-forecast-chart');
+    if (!ctx) return;
+
+    if (forecastCharts.r2ClassB) {
+        forecastCharts.r2ClassB.destroy();
+    }
+
+    // Prepare labels and data - exclude current month from historical
+    const labels = history.slice(0, -1).map(h => `${h.month.substring(0, 3)}\n${h.year}`);
+    const historicalData = history.slice(0, -1).map(h => h.data ? parseFloat(h.data.Class_B_Requests_MM_GetObject) : null);
+
+    // Add current month with actual partial data
+    const currentMonthData = history[history.length - 1];
+    const currentActual = currentMonthData.data ? parseFloat(currentMonthData.data.Class_B_Requests_MM_GetObject) : null;
+    labels.push(`${forecastMonth.substring(0, 3)}\n${currentYear}\n(Partial)`);
+    historicalData.push(currentActual);
+
+    // Add forecast point for month-end
+    labels.push(`${forecastMonth.substring(0, 3)} ${forecastDate}\n(Forecast)`);
+
+    // Create forecast lines: show three separate points at Dec 31
+    const highLine = [...Array(historicalData.length).fill(null), forecast.class_b_requests.high];
+    const meanLine = [...Array(historicalData.length).fill(null), forecast.class_b_requests.mean];
+    const lowLine = [...Array(historicalData.length).fill(null), forecast.class_b_requests.low];
+
+    forecastCharts.r2ClassB = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                // Historical actuals (grey line)
+                {
+                    label: 'Actual Operations',
+                    data: [...historicalData, currentActual],
+                    borderColor: '#6b7280',
+                    backgroundColor: 'rgba(107, 116, 128, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#6b7280'
+                },
+                // Forecast High (green)
+                {
+                    label: 'High Projection',
+                    data: highLine,
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    fill: '+1',
+                    pointRadius: 7,
+                    pointStyle: 'triangle',
+                    pointBackgroundColor: '#22c55e',
+                    tension: 0
+                },
+                // Forecast Mean (blue)
+                {
+                    label: 'Mean Projection',
+                    data: meanLine,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderWidth: 3,
+                    fill: false,
+                    pointRadius: 7,
+                    pointBackgroundColor: '#3b82f6',
+                    tension: 0
+                },
+                // Forecast Low (red)
+                {
+                    label: 'Low Projection',
+                    data: lowLine,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    fill: '-1',
+                    pointRadius: 7,
+                    pointStyle: 'rectRot',
+                    pointBackgroundColor: '#ef4444',
+                    tension: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2.5,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        color: '#e5e7eb',
+                        padding: 15,
+                        font: { size: 12, weight: '500' },
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        boxHeight: 8
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#e5e7eb',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/A'} MM`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        color: '#9ca3af',
+                        font: { size: 11 },
+                        callback: function(value) {
+                            return value.toFixed(0) + ' MM';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(75, 85, 99, 0.3)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#9ca3af',
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        color: 'rgba(75, 85, 99, 0.2)',
+                        drawBorder: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Render AWS Cost Forecast Charts (One for each account)
+function renderAWSForecastCharts(history, forecast, forecastMonth, forecastDate, currentYear) {
+    // Get the container for AWS forecast charts
+    const container = document.querySelector('.forecast-section');
+    if (!container) {
+        console.error('Forecast section container not found');
+        return;
+    }
+
+    // Destroy old AWS charts
+    if (forecastCharts.aws && forecastCharts.aws.length > 0) {
+        forecastCharts.aws.forEach(chart => {
+            if (chart) chart.destroy();
+        });
+        forecastCharts.aws = [];
+    }
+
+    // Remove old AWS forecast chart DOM elements
+    const oldCharts = container.querySelectorAll('.aws-forecast-subsection');
+    oldCharts.forEach(chart => chart.remove());
+
+    // Get unique account names
+    const accountNames = Object.keys(forecast);
+    if (accountNames.length === 0) {
+        console.warn('No AWS accounts found in forecast data');
+        return;
+    }
+
+    console.log(`Creating ${accountNames.length} AWS forecast charts for accounts:`, accountNames);
+
+    // Create a chart for each account
+    accountNames.forEach((accountName, index) => {
+        renderSingleAWSForecastChart(history, forecast[accountName], accountName, forecastMonth, forecastDate, currentYear, index);
+    });
+}
+
+// Render single AWS Cost Forecast (Financial Style)
+function renderSingleAWSForecastChart(history, forecastData, accountName, forecastMonth, forecastDate, currentYear, index) {
+    // Get the forecast section container
+    const container = document.querySelector('.forecast-section');
+    if (!container) return;
+
+    // Create new subsection for this account
+    const subsection = document.createElement('div');
+    subsection.className = 'forecast-subsection aws-forecast-subsection';
+    subsection.innerHTML = `
+        <h4>AWS Cost Forecast – ${accountName}</h4>
+        <div class="chart-container financial-chart">
+            <canvas id="aws-forecast-chart-${index}"></canvas>
+        </div>
+    `;
+
+    // Append to the forecast section
+    container.appendChild(subsection);
+
+    // Get canvas after it's been added to DOM
+    setTimeout(() => {
+        const ctx = document.getElementById(`aws-forecast-chart-${index}`);
+        if (!ctx) {
+            console.error(`Canvas not found for chart-${index}`);
+            return;
+        }
+
+        // Prepare labels and data - exclude current month from historical
+        const labels = history.slice(0, -1).map(h => `${h.month.substring(0, 3)}\n${h.year}`);
+        const historicalData = history.slice(0, -1).map(h => {
+            const account = h.data.find(d => d.account_name === accountName);
+            return account ? parseFloat(account.current_cost) : null;
+        });
+
+        // Add current month with actual partial data
+        const currentMonthData = history[history.length - 1];
+        const currentAccount = currentMonthData.data.find(d => d.account_name === accountName);
+        const currentActual = currentAccount ? parseFloat(currentAccount.current_cost) : null;
+        labels.push(`${forecastMonth.substring(0, 3)}\n${currentYear}\n(Partial)`);
+        historicalData.push(currentActual);
+
+        // Add forecast point for month-end
+        labels.push(`${forecastMonth.substring(0, 3)} ${forecastDate}\n(Forecast)`);
+
+        // Create forecast lines: show three separate points at Dec 31
+        console.log(`${accountName} - Current: ${currentActual}, High: ${forecastData.high}, Mean: ${forecastData.mean}, Low: ${forecastData.low}`);
+        const highLine = [...Array(historicalData.length).fill(null), forecastData.high];
+        const meanLine = [...Array(historicalData.length).fill(null), forecastData.mean];
+        const lowLine = [...Array(historicalData.length).fill(null), forecastData.low];
+
+        // Create and store the chart
+        const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                // Historical actuals (grey line)
+                {
+                    label: 'Actual Cost',
+                    data: [...historicalData, currentActual],
+                    borderColor: '#6b7280',
+                    backgroundColor: 'rgba(107, 116, 128, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#6b7280'
+                },
+                // Forecast High (green)
+                {
+                    label: 'High Projection',
+                    data: highLine,
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    fill: '+1',
+                    pointRadius: 7,
+                    pointStyle: 'triangle',
+                    pointBackgroundColor: '#22c55e',
+                    tension: 0
+                },
+                // Forecast Mean (blue)
+                {
+                    label: 'Mean Projection',
+                    data: meanLine,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderWidth: 3,
+                    fill: false,
+                    pointRadius: 7,
+                    pointBackgroundColor: '#3b82f6',
+                    tension: 0
+                },
+                // Forecast Low (red)
+                {
+                    label: 'Low Projection',
+                    data: lowLine,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    fill: '-1',
+                    pointRadius: 7,
+                    pointStyle: 'rectRot',
+                    pointBackgroundColor: '#ef4444',
+                    tension: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2.5,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: accountName,
+                    color: '#e5e7eb',
+                    font: { size: 13, weight: '400' },
+                    align: 'start',
+                    padding: { bottom: 15 }
+                },
+                legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        color: '#e5e7eb',
+                        padding: 15,
+                        font: { size: 12, weight: '500' },
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        boxHeight: 8
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#e5e7eb',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
                     callbacks: {
                         label: function(context) {
                             return `${context.dataset.label}: $${context.parsed.y?.toFixed(2) || 'N/A'}`;
@@ -739,236 +1143,35 @@ function renderAWSForecastChart(history, forecast, forecastMonth) {
             },
             scales: {
                 y: {
-                    beginAtZero: true,
+                    beginAtZero: false,
                     ticks: {
                         color: '#9ca3af',
+                        font: { size: 11 },
                         callback: function(value) {
                             return '$' + value.toFixed(0);
                         }
                     },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    grid: {
+                        color: 'rgba(75, 85, 99, 0.3)',
+                        drawBorder: false
+                    }
                 },
                 x: {
-                    ticks: { color: '#9ca3af' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                }
-            }
-        }
-    });
-}
-
-// Render R2 Forecast Chart
-function renderR2ForecastChart(history, forecast, forecastMonth) {
-    const ctx = document.getElementById('r2-forecast-chart');
-    if (!ctx) return;
-
-    if (forecastCharts.r2) {
-        forecastCharts.r2.destroy();
-    }
-
-    const labels = history.map(h => `${h.month.substring(0, 3)} ${h.year}`);
-    labels.push(forecastMonth.substring(0, 3));
-
-    // Payload Size TB data
-    const historicalPayload = history.map(h => h.data ? parseFloat(h.data.PAYLOAD_SIZE_TB) : null);
-
-    const datasets = [
-        {
-            label: 'Historical Payload (TB)',
-            data: [...historicalPayload, null],
-            borderColor: '#8b5cf6',
-            backgroundColor: 'rgba(139, 92, 246, 0.1)',
-            borderWidth: 2,
-            fill: false,
-            tension: 0.4,
-            yAxisID: 'y'
-        },
-        {
-            label: 'Forecast High (TB)',
-            data: [...Array(historicalPayload.length).fill(null), forecast.payload_tb.high],
-            borderColor: '#ef4444',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'triangle',
-            yAxisID: 'y'
-        },
-        {
-            label: 'Forecast Mean (TB)',
-            data: [...Array(historicalPayload.length).fill(null), forecast.payload_tb.mean],
-            borderColor: '#10b981',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'circle',
-            yAxisID: 'y'
-        },
-        {
-            label: 'Forecast Low (TB)',
-            data: [...Array(historicalPayload.length).fill(null), forecast.payload_tb.low],
-            borderColor: '#f59e0b',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'rect',
-            yAxisID: 'y'
-        }
-    ];
-
-    forecastCharts.r2 = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            aspectRatio: 2,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'R2 Payload Size Forecast (TB)',
-                    color: '#fff',
-                    font: { size: 14, weight: 'bold' }
-                },
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: { color: '#fff', padding: 10, font: { size: 11 } }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/A'} TB`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    position: 'left',
                     ticks: {
                         color: '#9ca3af',
-                        callback: function(value) {
-                            return value.toFixed(1) + ' TB';
-                        }
+                        font: { size: 11 }
                     },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                },
-                x: {
-                    ticks: { color: '#9ca3af' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                }
-            }
-        }
-    });
-}
-
-// Render Zone Forecast Chart
-function renderZoneForecastChart(history, forecast, forecastMonth) {
-    const ctx = document.getElementById('zone-forecast-chart');
-    if (!ctx) return;
-
-    if (forecastCharts.zone) {
-        forecastCharts.zone.destroy();
-    }
-
-    const labels = history.map(h => `${h.month.substring(0, 3)} ${h.year}`);
-    labels.push(forecastMonth.substring(0, 3));
-
-    // Aggregate bandwidth data
-    const historicalComBandwidth = history.map(h => {
-        return h.data.filter(z => z.Is_China === 0 || z.Is_China === '0')
-            .reduce((sum, z) => sum + parseFloat(z.Bandwidth_TB || 0), 0);
-    });
-
-    const datasets = [
-        {
-            label: 'Historical .com Bandwidth (TB)',
-            data: [...historicalComBandwidth, null],
-            borderColor: '#06b6d4',
-            backgroundColor: 'rgba(6, 182, 212, 0.1)',
-            borderWidth: 2,
-            fill: false,
-            tension: 0.4
-        },
-        {
-            label: 'Forecast High (TB)',
-            data: [...Array(historicalComBandwidth.length).fill(null), forecast.com_bandwidth.high],
-            borderColor: '#ef4444',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'triangle'
-        },
-        {
-            label: 'Forecast Mean (TB)',
-            data: [...Array(historicalComBandwidth.length).fill(null), forecast.com_bandwidth.mean],
-            borderColor: '#10b981',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'circle'
-        },
-        {
-            label: 'Forecast Low (TB)',
-            data: [...Array(historicalComBandwidth.length).fill(null), forecast.com_bandwidth.low],
-            borderColor: '#f59e0b',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            pointRadius: 6,
-            pointStyle: 'rect'
-        }
-    ];
-
-    forecastCharts.zone = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            aspectRatio: 2,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Cloudflare .com Bandwidth Forecast (TB)',
-                    color: '#fff',
-                    font: { size: 14, weight: 'bold' }
-                },
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: { color: '#fff', padding: 10, font: { size: 11 } }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/A'} TB`;
-                        }
+                    grid: {
+                        color: 'rgba(75, 85, 99, 0.2)',
+                        drawBorder: false
                     }
                 }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        color: '#9ca3af',
-                        callback: function(value) {
-                            return value.toFixed(1) + ' TB';
-                        }
-                    },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                },
-                x: {
-                    ticks: { color: '#9ca3af' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                }
             }
         }
     });
+
+        // Store the chart in the array
+        forecastCharts.aws.push(chart);
+        console.log(`AWS chart created for ${accountName}`);
+    }, 100); // Small delay to ensure canvas is in DOM
 }

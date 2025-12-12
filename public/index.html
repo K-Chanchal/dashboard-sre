@@ -104,31 +104,25 @@
 
                 <!-- Forecast Section -->
                 <div class="usage-section forecast-section">
-                    <h3>Month-End Forecast</h3>
+                    <h3>Financial Forecast Analysis</h3>
 
-                    <!-- AWS Cost Forecast -->
+                    <!-- Cloudflare R2 - Class A Operations Forecast -->
                     <div class="forecast-subsection">
-                        <h4>AWS Cost Forecast</h4>
-                        <div class="chart-container">
-                            <canvas id="aws-forecast-chart"></canvas>
+                        <h4>Cloudflare R2 – Class A Operations Forecast</h4>
+                        <div class="chart-container financial-chart">
+                            <canvas id="r2-class-a-forecast-chart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Cloudflare R2 Forecast -->
+                    <!-- Cloudflare R2 - Class B Operations Forecast -->
                     <div class="forecast-subsection">
-                        <h4>Cloudflare R2 Forecast</h4>
-                        <div class="chart-container">
-                            <canvas id="r2-forecast-chart"></canvas>
+                        <h4>Cloudflare R2 – Class B Operations Forecast</h4>
+                        <div class="chart-container financial-chart">
+                            <canvas id="r2-class-b-forecast-chart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Cloudflare Zone Forecast -->
-                    <div class="forecast-subsection">
-                        <h4>Cloudflare Zone Forecast</h4>
-                        <div class="chart-container">
-                            <canvas id="zone-forecast-chart"></canvas>
-                        </div>
-                    </div>
+                    <!-- AWS Cost Forecast charts will be dynamically inserted here (one per account) -->
                 </div>
             </div>
 

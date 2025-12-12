@@ -683,51 +683,63 @@ body {
     }
 }
 
-/* Forecast Section Styles */
+/* Forecast Section Styles - Financial Dashboard Style */
 .forecast-section {
     margin-top: 20px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 25px;
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.95));
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    border: 1px solid rgba(75, 85, 99, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .forecast-section h3 {
-    font-size: 18px;
-    margin-bottom: 15px;
-    color: #fbbf24;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 20px;
+    margin-bottom: 25px;
+    color: #f3f4f6;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    text-transform: none;
+    border-bottom: 2px solid rgba(75, 85, 99, 0.3);
+    padding-bottom: 12px;
 }
 
 .forecast-subsection {
-    margin-bottom: 25px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(17, 24, 39, 0.6);
+    border-radius: 12px;
+    border: 1px solid rgba(75, 85, 99, 0.2);
+    transition: all 0.3s ease;
+}
+
+.forecast-subsection:hover {
+    border-color: rgba(96, 165, 250, 0.4);
+    box-shadow: 0 5px 20px rgba(59, 130, 246, 0.1);
 }
 
 .forecast-subsection h4 {
-    font-size: 14px;
-    margin-bottom: 15px;
-    color: #60a5fa;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 15px;
+    margin-bottom: 18px;
+    color: #e5e7eb;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+    text-transform: none;
 }
 
 .chart-container {
     position: relative;
     width: 100%;
-    min-height: 300px;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 15px;
-    border-radius: 8px;
+    min-height: 350px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(75, 85, 99, 0.15);
 }
 
-.chart-container canvas {
-    max-height: 400px;
+.financial-chart canvas {
+    max-height: 450px !important;
 }
 
 @media (max-width: 768px) {
