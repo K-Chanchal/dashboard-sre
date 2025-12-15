@@ -102,28 +102,6 @@
                     </div>
                 </div>
 
-                <!-- Forecast Section -->
-                <div class="usage-section forecast-section">
-                    <h3>Financial Forecast Analysis</h3>
-
-                    <!-- Cloudflare R2 - Class A Operations Forecast -->
-                    <div class="forecast-subsection">
-                        <h4>Cloudflare R2 – Class A Operations Forecast</h4>
-                        <div class="chart-container financial-chart">
-                            <canvas id="r2-class-a-forecast-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Cloudflare R2 - Class B Operations Forecast -->
-                    <div class="forecast-subsection">
-                        <h4>Cloudflare R2 – Class B Operations Forecast</h4>
-                        <div class="chart-container financial-chart">
-                            <canvas id="r2-class-b-forecast-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- AWS Cost Forecast charts will be dynamically inserted here (one per account) -->
-                </div>
             </div>
 
             <!-- Right Side: Server Status -->
@@ -155,6 +133,20 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal for Chart Popup -->
+    <div id="chart-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Chart</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <canvas id="modal-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
