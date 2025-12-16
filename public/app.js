@@ -517,7 +517,7 @@ function isServerSuccess(server, serverType) {
             const status = server[field].toString().toUpperCase();
             if (status === 'DOWN' || status === 'FAILED' || status === 'CRITICAL' ||
                 status === 'ERROR' || status === 'OFFLINE' || status === 'ALERTING' ||
-                status.includes('FAIL')) {
+                status === 'NOT RUNNING' || status.includes('FAIL') || status.includes('NOT')) {
                 return false;
             }
         }
@@ -810,7 +810,7 @@ function createR2ClassAChart(ctx, history, forecast, forecastMonth, forecastDate
     // Create connector lines from actual to forecast points
     const connectorToHigh = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.class_a_requests.high];
     const connectorToMean = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.class_a_requests.mean];
-    const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.class_a_requests.low];
+    // const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.class_a_requests.low];
 
     return new Chart(ctx, {
         type: 'line',
@@ -841,18 +841,18 @@ function createR2ClassAChart(ctx, history, forecast, forecastMonth, forecastDate
                     tension: 0,
                     order: 5
                 },
-                // Lower triangular area (Actual -> Mean -> Low, green)
-                {
-                    label: 'Lower Uncertainty',
-                    data: connectorToLow,
-                    borderColor: 'transparent',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    borderWidth: 0,
-                    fill: '-1',
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 5
-                },
+                // Lower triangular area (Actual -> Mean -> Low, green) - COMMENTED OUT
+                // {
+                //     label: 'Lower Uncertainty',
+                //     data: connectorToLow,
+                //     borderColor: 'transparent',
+                //     backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                //     borderWidth: 0,
+                //     fill: '-1',
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 5
+                // },
                 // Historical actual line
                 {
                     label: 'Actual Operations',
@@ -892,19 +892,19 @@ function createR2ClassAChart(ctx, history, forecast, forecastMonth, forecastDate
                     tension: 0,
                     order: 2
                 },
-                // Connector to Low (dotted green)
-                {
-                    label: '',
-                    data: connectorToLow,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    fill: false,
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 3
-                },
+                // Connector to Low (dotted green) - COMMENTED OUT
+                // {
+                //     label: '',
+                //     data: connectorToLow,
+                //     borderColor: '#22c55e',
+                //     backgroundColor: 'transparent',
+                //     borderWidth: 2,
+                //     borderDash: [5, 5],
+                //     fill: false,
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 3
+                // },
                 // Forecast points
                 {
                     label: 'High Projection',
@@ -931,19 +931,20 @@ function createR2ClassAChart(ctx, history, forecast, forecastMonth, forecastDate
                     tension: 0,
                     order: 1
                 },
-                {
-                    label: 'Low Projection',
-                    data: [...Array(historicalData.length).fill(null), forecast.class_a_requests.low],
-                    borderColor: '#22c55e',
-                    backgroundColor: '#22c55e',
-                    borderWidth: 0,
-                    fill: false,
-                    pointRadius: 8,
-                    pointStyle: 'rectRot',
-                    pointBackgroundColor: '#22c55e',
-                    tension: 0,
-                    order: 1
-                }
+                // Low Projection - COMMENTED OUT
+                // {
+                //     label: 'Low Projection',
+                //     data: [...Array(historicalData.length).fill(null), forecast.class_a_requests.low],
+                //     borderColor: '#22c55e',
+                //     backgroundColor: '#22c55e',
+                //     borderWidth: 0,
+                //     fill: false,
+                //     pointRadius: 8,
+                //     pointStyle: 'rectRot',
+                //     pointBackgroundColor: '#22c55e',
+                //     tension: 0,
+                //     order: 1
+                // }
             ]
         },
         options: {
@@ -1035,7 +1036,7 @@ function createR2ClassBChart(ctx, history, forecast, forecastMonth, forecastDate
     // Create connector lines from actual to forecast points
     const connectorToHigh = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.class_b_requests.high];
     const connectorToMean = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.class_b_requests.mean];
-    const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.class_b_requests.low];
+    // const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.class_b_requests.low];
 
     return new Chart(ctx, {
         type: 'line',
@@ -1066,18 +1067,18 @@ function createR2ClassBChart(ctx, history, forecast, forecastMonth, forecastDate
                     tension: 0,
                     order: 5
                 },
-                // Lower triangular area (Actual -> Mean -> Low, green)
-                {
-                    label: 'Lower Uncertainty',
-                    data: connectorToLow,
-                    borderColor: 'transparent',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    borderWidth: 0,
-                    fill: '-1',
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 5
-                },
+                // Lower triangular area (Actual -> Mean -> Low, green) - COMMENTED OUT
+                // {
+                //     label: 'Lower Uncertainty',
+                //     data: connectorToLow,
+                //     borderColor: 'transparent',
+                //     backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                //     borderWidth: 0,
+                //     fill: '-1',
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 5
+                // },
                 // Historical actual line
                 {
                     label: 'Actual Operations',
@@ -1117,19 +1118,19 @@ function createR2ClassBChart(ctx, history, forecast, forecastMonth, forecastDate
                     tension: 0,
                     order: 2
                 },
-                // Connector to Low (dotted green)
-                {
-                    label: '',
-                    data: connectorToLow,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    fill: false,
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 3
-                },
+                // Connector to Low (dotted green) - COMMENTED OUT
+                // {
+                //     label: '',
+                //     data: connectorToLow,
+                //     borderColor: '#22c55e',
+                //     backgroundColor: 'transparent',
+                //     borderWidth: 2,
+                //     borderDash: [5, 5],
+                //     fill: false,
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 3
+                // },
                 // Forecast points
                 {
                     label: 'High Projection',
@@ -1156,19 +1157,20 @@ function createR2ClassBChart(ctx, history, forecast, forecastMonth, forecastDate
                     tension: 0,
                     order: 1
                 },
-                {
-                    label: 'Low Projection',
-                    data: [...Array(historicalData.length).fill(null), forecast.class_b_requests.low],
-                    borderColor: '#22c55e',
-                    backgroundColor: '#22c55e',
-                    borderWidth: 0,
-                    fill: false,
-                    pointRadius: 8,
-                    pointStyle: 'rectRot',
-                    pointBackgroundColor: '#22c55e',
-                    tension: 0,
-                    order: 1
-                }
+                // Low Projection - COMMENTED OUT
+                // {
+                //     label: 'Low Projection',
+                //     data: [...Array(historicalData.length).fill(null), forecast.class_b_requests.low],
+                //     borderColor: '#22c55e',
+                //     backgroundColor: '#22c55e',
+                //     borderWidth: 0,
+                //     fill: false,
+                //     pointRadius: 8,
+                //     pointStyle: 'rectRot',
+                //     pointBackgroundColor: '#22c55e',
+                //     tension: 0,
+                //     order: 1
+                // }
             ]
         },
         options: {
@@ -1262,7 +1264,7 @@ function createZoneRequestsAllChart(ctx, history, forecast, forecastMonth, forec
     // Create connector lines from actual to forecast points
     const connectorToHigh = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.all_requests.high];
     const connectorToMean = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.all_requests.mean];
-    const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.all_requests.low];
+    // const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.all_requests.low];
 
     return new Chart(ctx, {
         type: 'line',
@@ -1293,18 +1295,18 @@ function createZoneRequestsAllChart(ctx, history, forecast, forecastMonth, forec
                     tension: 0,
                     order: 5
                 },
-                // Lower triangular area (Actual -> Mean -> Low, green)
-                {
-                    label: 'Lower Uncertainty',
-                    data: connectorToLow,
-                    borderColor: 'transparent',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    borderWidth: 0,
-                    fill: '-1',
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 5
-                },
+                // Lower triangular area (Actual -> Mean -> Low, green) - COMMENTED OUT
+                // {
+                //     label: 'Lower Uncertainty',
+                //     data: connectorToLow,
+                //     borderColor: 'transparent',
+                //     backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                //     borderWidth: 0,
+                //     fill: '-1',
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 5
+                // },
                 // Historical actual line
                 {
                     label: 'Actual Requests',
@@ -1344,19 +1346,19 @@ function createZoneRequestsAllChart(ctx, history, forecast, forecastMonth, forec
                     tension: 0,
                     order: 2
                 },
-                // Connector to Low (dotted green)
-                {
-                    label: '',
-                    data: connectorToLow,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    fill: false,
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 3
-                },
+                // Connector to Low (dotted green) - COMMENTED OUT
+                // {
+                //     label: '',
+                //     data: connectorToLow,
+                //     borderColor: '#22c55e',
+                //     backgroundColor: 'transparent',
+                //     borderWidth: 2,
+                //     borderDash: [5, 5],
+                //     fill: false,
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 3
+                // },
                 // Forecast points
                 {
                     label: 'High Projection',
@@ -1383,19 +1385,20 @@ function createZoneRequestsAllChart(ctx, history, forecast, forecastMonth, forec
                     tension: 0,
                     order: 1
                 },
-                {
-                    label: 'Low Projection',
-                    data: [...Array(historicalData.length).fill(null), forecast.all_requests.low],
-                    borderColor: '#22c55e',
-                    backgroundColor: '#22c55e',
-                    borderWidth: 0,
-                    fill: false,
-                    pointRadius: 8,
-                    pointStyle: 'rectRot',
-                    pointBackgroundColor: '#22c55e',
-                    tension: 0,
-                    order: 1
-                }
+                // Low Projection - COMMENTED OUT
+                // {
+                //     label: 'Low Projection',
+                //     data: [...Array(historicalData.length).fill(null), forecast.all_requests.low],
+                //     borderColor: '#22c55e',
+                //     backgroundColor: '#22c55e',
+                //     borderWidth: 0,
+                //     fill: false,
+                //     pointRadius: 8,
+                //     pointStyle: 'rectRot',
+                //     pointBackgroundColor: '#22c55e',
+                //     tension: 0,
+                //     order: 1
+                // }
             ]
         },
         options: {
@@ -1491,7 +1494,7 @@ function createZoneBandwidthComChart(ctx, history, forecast, forecastMonth, fore
     // Create connector lines from actual to forecast points
     const connectorToHigh = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.com_bandwidth.high];
     const connectorToMean = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.com_bandwidth.mean];
-    const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.com_bandwidth.low];
+    // const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.com_bandwidth.low];
 
     return new Chart(ctx, {
         type: 'line',
@@ -1520,17 +1523,18 @@ function createZoneBandwidthComChart(ctx, history, forecast, forecastMonth, fore
                     tension: 0,
                     order: 5
                 },
-                {
-                    label: 'Lower Uncertainty',
-                    data: connectorToLow,
-                    borderColor: 'transparent',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    borderWidth: 0,
-                    fill: '-1',
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 5
-                },
+                // Lower Uncertainty - COMMENTED OUT
+                // {
+                //     label: 'Lower Uncertainty',
+                //     data: connectorToLow,
+                //     borderColor: 'transparent',
+                //     backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                //     borderWidth: 0,
+                //     fill: '-1',
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 5
+                // },
                 {
                     label: 'Actual Bandwidth',
                     data: [...historicalData, currentActual],
@@ -1567,18 +1571,19 @@ function createZoneBandwidthComChart(ctx, history, forecast, forecastMonth, fore
                     tension: 0,
                     order: 2
                 },
-                {
-                    label: '',
-                    data: connectorToLow,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    fill: false,
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 3
-                },
+                // Connector to Low - COMMENTED OUT
+                // {
+                //     label: '',
+                //     data: connectorToLow,
+                //     borderColor: '#22c55e',
+                //     backgroundColor: 'transparent',
+                //     borderWidth: 2,
+                //     borderDash: [5, 5],
+                //     fill: false,
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 3
+                // },
                 {
                     label: 'High Projection',
                     data: [...Array(historicalData.length).fill(null), forecast.com_bandwidth.high],
@@ -1712,7 +1717,7 @@ function createZoneBandwidthChinaChart(ctx, history, forecast, forecastMonth, fo
     // Create connector lines from actual to forecast points
     const connectorToHigh = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.china_bandwidth.high];
     const connectorToMean = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.china_bandwidth.mean];
-    const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.china_bandwidth.low];
+    // const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecast.china_bandwidth.low];
 
     return new Chart(ctx, {
         type: 'line',
@@ -1741,17 +1746,18 @@ function createZoneBandwidthChinaChart(ctx, history, forecast, forecastMonth, fo
                     tension: 0,
                     order: 5
                 },
-                {
-                    label: 'Lower Uncertainty',
-                    data: connectorToLow,
-                    borderColor: 'transparent',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    borderWidth: 0,
-                    fill: '-1',
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 5
-                },
+                // Lower Uncertainty - COMMENTED OUT
+                // {
+                //     label: 'Lower Uncertainty',
+                //     data: connectorToLow,
+                //     borderColor: 'transparent',
+                //     backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                //     borderWidth: 0,
+                //     fill: '-1',
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 5
+                // },
                 {
                     label: 'Actual Bandwidth',
                     data: [...historicalData, currentActual],
@@ -1788,18 +1794,19 @@ function createZoneBandwidthChinaChart(ctx, history, forecast, forecastMonth, fo
                     tension: 0,
                     order: 2
                 },
-                {
-                    label: '',
-                    data: connectorToLow,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    fill: false,
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 3
-                },
+                // Connector to Low - COMMENTED OUT
+                // {
+                //     label: '',
+                //     data: connectorToLow,
+                //     borderColor: '#22c55e',
+                //     backgroundColor: 'transparent',
+                //     borderWidth: 2,
+                //     borderDash: [5, 5],
+                //     fill: false,
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 3
+                // },
                 {
                     label: 'High Projection',
                     data: [...Array(historicalData.length).fill(null), forecast.china_bandwidth.high],
@@ -1933,7 +1940,7 @@ function createAWSCostChart(ctx, history, forecastData, accountName, forecastMon
     // Create connector lines from actual to forecast points
     const connectorToHigh = [...Array(historicalData.length - 1).fill(null), currentActual, forecastData.high];
     const connectorToMean = [...Array(historicalData.length - 1).fill(null), currentActual, forecastData.mean];
-    const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecastData.low];
+    // const connectorToLow = [...Array(historicalData.length - 1).fill(null), currentActual, forecastData.low];
 
     return new Chart(ctx, {
         type: 'line',
@@ -1962,17 +1969,18 @@ function createAWSCostChart(ctx, history, forecastData, accountName, forecastMon
                     tension: 0,
                     order: 5
                 },
-                {
-                    label: 'Lower Uncertainty',
-                    data: connectorToLow,
-                    borderColor: 'transparent',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    borderWidth: 0,
-                    fill: '-1',
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 5
-                },
+                // Lower Uncertainty - COMMENTED OUT
+                // {
+                //     label: 'Lower Uncertainty',
+                //     data: connectorToLow,
+                //     borderColor: 'transparent',
+                //     backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                //     borderWidth: 0,
+                //     fill: '-1',
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 5
+                // },
                 {
                     label: 'Actual Cost',
                     data: [...historicalData, currentActual],
@@ -2009,18 +2017,19 @@ function createAWSCostChart(ctx, history, forecastData, accountName, forecastMon
                     tension: 0,
                     order: 2
                 },
-                {
-                    label: '',
-                    data: connectorToLow,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    fill: false,
-                    pointRadius: 0,
-                    tension: 0,
-                    order: 3
-                },
+                // Connector to Low - COMMENTED OUT
+                // {
+                //     label: '',
+                //     data: connectorToLow,
+                //     borderColor: '#22c55e',
+                //     backgroundColor: 'transparent',
+                //     borderWidth: 2,
+                //     borderDash: [5, 5],
+                //     fill: false,
+                //     pointRadius: 0,
+                //     tension: 0,
+                //     order: 3
+                // },
                 {
                     label: 'High Projection',
                     data: [...Array(historicalData.length).fill(null), forecastData.high],
