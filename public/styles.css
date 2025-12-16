@@ -853,3 +853,131 @@ body {
         min-height: 300px;
     }
 }
+
+/* Rotation Controls */
+.rotation-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.nav-button:active {
+    transform: scale(0.95);
+}
+
+.section-indicator {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Rotation Container */
+.rotation-container {
+    position: relative;
+    min-height: 400px;
+    overflow: hidden;
+}
+
+.rotation-section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: all 0.5s ease-in-out;
+}
+
+.rotation-section.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    position: relative;
+}
+
+.rotation-section.exit-left {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+.rotation-section.exit-right {
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+.rotation-section.enter-left {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+.rotation-section.enter-right {
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+/* Panel header adjustments for rotation controls */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h2 {
+    margin: 0;
+}
+
+/* Server Rotation - Top to Bottom Transitions */
+.server-rotation-container .rotation-section {
+    transform: translateY(100%);
+}
+
+.server-rotation-container .rotation-section.active {
+    transform: translateY(0);
+}
+
+.server-rotation-container .rotation-section.exit-left {
+    transform: translateY(-100%);
+}
+
+.server-rotation-container .rotation-section.exit-right {
+    transform: translateY(100%);
+}
+
+.server-rotation-container .rotation-section.enter-left {
+    transform: translateY(-100%);
+}
+
+.server-rotation-container .rotation-section.enter-right {
+    transform: translateY(100%);
+}
+
+.server-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #4FC3F7;
+}

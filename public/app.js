@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startServerTypeRotation();
     setupNavigationButtons();
     setupModalHandlers();
+    setupSectionRotation();
 });
 
 // Fetch all data
@@ -460,40 +461,49 @@ function createFailureDetailRow(server, serverType) {
 
 // Update server display for current server type
 function updateServerDisplay() {
-    const currentType = SERVER_TYPES[currentServerTypeIndex];
-    const servers = serverData[currentType] || [];
+    // Update all server sections at once
+    SERVER_TYPES.forEach((serverType, index) => {
+        const servers = serverData[serverType] || [];
+        const sectionIndex = index + 1;
 
-    // Update title with animation
-    const titleElement = document.getElementById('server-type-title');
-    titleElement.textContent = `🖥️ ${currentType.toUpperCase()}`;
-    titleElement.classList.remove('flip-in');
-    void titleElement.offsetWidth; // Trigger reflow
-    titleElement.classList.add('flip-in');
+        // Check if all servers are running/success
+        const failedServers = servers.filter(server => !isServerSuccess(server, serverType));
 
-    // Check if all servers are running/success
-    const failedServers = servers.filter(server => !isServerSuccess(server, currentType));
+        const messageElement = document.getElementById(`server-status-message-${sectionIndex}`);
+        const tbody = document.getElementById(`server-tbody-${sectionIndex}`);
 
-    const messageElement = document.getElementById('server-status-message');
-    const tbody = document.querySelector('#server-table tbody');
-    tbody.innerHTML = '';
+        if (!messageElement || !tbody) return;
 
-    if (failedServers.length === 0) {
-        // All running
-        messageElement.textContent = 'ALL RUNNING / SUCCESS';
-        messageElement.className = 'status-message success-message';
+        tbody.innerHTML = '';
 
-        const row = document.createElement('tr');
-        row.innerHTML = '<td colspan="5" class="all-success">✓ All systems operational</td>';
-        tbody.appendChild(row);
-    } else {
-        // Show failed servers
-        messageElement.textContent = `${failedServers.length} FAILURE(S) DETECTED`;
-        messageElement.className = 'status-message failure-message';
+        if (failedServers.length === 0) {
+            // All running
+            messageElement.textContent = 'ALL RUNNING / SUCCESS';
+            messageElement.className = 'status-message success-message';
 
-        failedServers.forEach(server => {
-            const row = createServerRow(server, currentType);
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="5" class="all-success">✓ All systems operational</td>';
             tbody.appendChild(row);
-        });
+        } else {
+            // Show failed servers
+            messageElement.textContent = `${failedServers.length} FAILURE(S) DETECTED`;
+            messageElement.className = 'status-message failure-message';
+
+            failedServers.forEach(server => {
+                const row = createServerRow(server, serverType);
+                tbody.appendChild(row);
+            });
+        }
+    });
+
+    // Update indicator
+    updateServerIndicator();
+}
+
+function updateServerIndicator() {
+    const indicator = document.getElementById('server-indicator');
+    if (indicator) {
+        indicator.textContent = `${currentServerTypeIndex + 1} / ${SERVER_TYPES.length}`;
     }
 }
 
@@ -590,12 +600,48 @@ function startAutoRefresh() {
     }, REFRESH_INTERVAL);
 }
 
-// Start server type rotation
+// Start server type rotation with slide animation
 function startServerTypeRotation() {
     serverRotationTimer = setInterval(() => {
-        currentServerTypeIndex = (currentServerTypeIndex + 1) % SERVER_TYPES.length;
-        updateServerDisplay();
+        navigateToServerSection(currentServerTypeIndex + 2);
     }, SERVER_TYPE_ROTATION_INTERVAL);
+}
+
+function resetServerRotationTimer() {
+    stopServerTypeRotation();
+    startServerTypeRotation();
+}
+
+function navigateToServerSection(targetSection) {
+    const totalServerSections = SERVER_TYPES.length;
+
+    // Wrap around logic
+    if (targetSection < 1) targetSection = totalServerSections;
+    if (targetSection > totalServerSections) targetSection = 1;
+
+    const currentSectionEl = document.querySelector(`.server-section[data-server-section="${currentServerTypeIndex + 1}"]`);
+    const targetSectionEl = document.querySelector(`.server-section[data-server-section="${targetSection}"]`);
+
+    if (!currentSectionEl || !targetSectionEl) return;
+
+    // Determine animation direction
+    const direction = targetSection > (currentServerTypeIndex + 1) ? 'right' : 'left';
+
+    // Exit current section
+    currentSectionEl.classList.remove('active');
+    currentSectionEl.classList.add(`exit-${direction}`);
+
+    // Enter target section
+    targetSectionEl.classList.add(`enter-${direction}`);
+
+    setTimeout(() => {
+        currentSectionEl.classList.remove('exit-left', 'exit-right');
+        targetSectionEl.classList.remove('enter-left', 'enter-right');
+        targetSectionEl.classList.add('active');
+
+        currentServerTypeIndex = targetSection - 1;
+        updateServerIndicator();
+    }, 50);
 }
 
 // Stop auto-refresh
@@ -633,46 +679,23 @@ window.addEventListener('beforeunload', () => {
 
 // Setup navigation buttons
 function setupNavigationButtons() {
-    const prevButton = document.getElementById('prev-button');
-    const nextButton = document.getElementById('next-button');
+    const prevButton = document.getElementById('prev-server-button');
+    const nextButton = document.getElementById('next-server-button');
+
+    if (!prevButton || !nextButton) {
+        console.error('Server navigation buttons not found');
+        return;
+    }
 
     prevButton.addEventListener('click', () => {
-        navigatePrevious();
+        navigateToServerSection(currentServerTypeIndex);
+        resetServerRotationTimer();
     });
 
     nextButton.addEventListener('click', () => {
-        navigateNext();
+        navigateToServerSection(currentServerTypeIndex + 2);
+        resetServerRotationTimer();
     });
-}
-
-// Navigate to previous server type
-function navigatePrevious() {
-    // Stop auto-rotation when user manually navigates
-    stopServerTypeRotation();
-
-    currentServerTypeIndex = (currentServerTypeIndex - 1 + SERVER_TYPES.length) % SERVER_TYPES.length;
-    updateServerDisplay();
-
-    // Restart auto-rotation after 1 minute of inactivity
-    clearTimeout(window.navigationTimeout);
-    window.navigationTimeout = setTimeout(() => {
-        startServerTypeRotation();
-    }, 60000);
-}
-
-// Navigate to next server type
-function navigateNext() {
-    // Stop auto-rotation when user manually navigates
-    stopServerTypeRotation();
-
-    currentServerTypeIndex = (currentServerTypeIndex + 1) % SERVER_TYPES.length;
-    updateServerDisplay();
-
-    // Restart auto-rotation after 1 minute of inactivity
-    clearTimeout(window.navigationTimeout);
-    window.navigationTimeout = setTimeout(() => {
-        startServerTypeRotation();
-    }, 60000);
 }
 
 // Fetch forecast data
@@ -2110,4 +2133,111 @@ function createAWSCostChart(ctx, history, forecastData, accountName, forecastMon
             }
         }
     });
+}
+
+// Section Rotation Logic
+let currentSection = 1;
+const totalSections = 3;
+let rotationInterval = null;
+const ROTATION_DELAY = 5000; // 5 seconds (same as server rotation)
+
+function setupSectionRotation() {
+    const prevButton = document.getElementById('prev-section');
+    const nextButton = document.getElementById('next-section');
+
+    if (!prevButton || !nextButton) {
+        console.error('Navigation buttons not found');
+        return;
+    }
+
+    // Previous button handler
+    prevButton.addEventListener('click', () => {
+        navigateToSection(currentSection - 1);
+        resetRotationTimer();
+    });
+
+    // Next button handler
+    nextButton.addEventListener('click', () => {
+        navigateToSection(currentSection + 1);
+        resetRotationTimer();
+    });
+
+    // Start automatic rotation
+    startSectionRotation();
+
+    console.log('Section rotation initialized');
+}
+
+function navigateToSection(targetSection) {
+    // Wrap around
+    if (targetSection < 1) targetSection = totalSections;
+    if (targetSection > totalSections) targetSection = 1;
+
+    if (targetSection === currentSection) return;
+
+    const sections = document.querySelectorAll('.rotation-section');
+    const currentSectionEl = document.querySelector(`.rotation-section[data-section="${currentSection}"]`);
+    const targetSectionEl = document.querySelector(`.rotation-section[data-section="${targetSection}"]`);
+
+    if (!currentSectionEl || !targetSectionEl) {
+        console.error('Section elements not found');
+        return;
+    }
+
+    // Determine direction
+    const direction = targetSection > currentSection ? 'right' : 'left';
+
+    // Remove active class and add exit animation
+    currentSectionEl.classList.remove('active');
+    currentSectionEl.classList.add(`exit-${direction}`);
+
+    // Add enter animation and then active class
+    if (direction === 'right') {
+        targetSectionEl.classList.add('enter-right');
+    } else {
+        targetSectionEl.classList.add('enter-left');
+    }
+
+    // Small delay to ensure CSS transition triggers
+    setTimeout(() => {
+        targetSectionEl.classList.remove('enter-left', 'enter-right');
+        targetSectionEl.classList.add('active');
+    }, 50);
+
+    // Clean up exit animations after transition
+    setTimeout(() => {
+        currentSectionEl.classList.remove('exit-left', 'exit-right');
+    }, 500);
+
+    // Update current section
+    currentSection = targetSection;
+
+    // Update indicator
+    updateSectionIndicator();
+}
+
+function updateSectionIndicator() {
+    const indicator = document.getElementById('section-indicator');
+    if (indicator) {
+        indicator.textContent = `${currentSection} / ${totalSections}`;
+    }
+}
+
+function startSectionRotation() {
+    // Clear any existing interval
+    if (rotationInterval) {
+        clearInterval(rotationInterval);
+    }
+
+    // Auto-rotate every minute
+    rotationInterval = setInterval(() => {
+        navigateToSection(currentSection + 1);
+    }, ROTATION_DELAY);
+
+    console.log('Auto-rotation started: switching sections every 60 seconds');
+}
+
+function resetRotationTimer() {
+    // Restart the rotation timer when user manually navigates
+    startSectionRotation();
 }

@@ -32,15 +32,18 @@
             <div class="left-panel">
                 <div class="panel-header">
                     <h2>📊 USAGE & OVERAGES</h2>
+                    <div class="rotation-controls">
+                        <button id="prev-section" class="nav-button" title="Previous Section">◀</button>
+                        <span id="section-indicator" class="section-indicator">1 / 3</span>
+                        <button id="next-section" class="nav-button" title="Next Section">▶</button>
+                    </div>
                 </div>
 
-                <!-- Cloudflare -->
-                <div class="usage-section cloudflare-section">
-                    <h3>Cloudflare</h3>
-
-                    <!-- R2 Storage Subsection -->
-                    <div class="cloudflare-subsection">
-                        <h4>R2 Storage</h4>
+                <!-- Rotation Container -->
+                <div class="rotation-container">
+                    <!-- Section 1: R2 Storage -->
+                    <div class="usage-section rotation-section active" data-section="1">
+                        <h3>Cloudflare R2 Storage</h3>
                         <div class="r2-cards">
                             <div class="r2-card">
                                 <div class="r2-label">Payload Size (TB)</div>
@@ -60,9 +63,9 @@
                         </div>
                     </div>
 
-                    <!-- Zone Bandwidth Subsection -->
-                    <div class="cloudflare-subsection">
-                        <h4>Zone Bandwidth</h4>
+                    <!-- Section 2: Zone Bandwidth -->
+                    <div class="usage-section rotation-section" data-section="2">
+                        <h3>Cloudflare Zone Bandwidth</h3>
                         <div class="zone-cards">
                             <div class="zone-card">
                                 <div class="zone-label">Requests All (M)</div>
@@ -81,24 +84,24 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- AWS Cost -->
-                <div class="usage-section">
-                    <h3>AWS Cost</h3>
-                    <div class="table-container">
-                        <table id="aws-cost-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Account Name</th>
-                                    <th>Current Cost ($)</th>
-                                    <th>Percentage (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="3" class="loading">Loading...</td></tr>
-                            </tbody>
-                        </table>
+                    <!-- Section 3: AWS Cost -->
+                    <div class="usage-section rotation-section" data-section="3">
+                        <h3>AWS Cost</h3>
+                        <div class="table-container">
+                            <table id="aws-cost-table" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Account Name</th>
+                                        <th>Current Cost ($)</th>
+                                        <th>Percentage (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="3" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -107,28 +110,169 @@
             <!-- Right Side: Server Status -->
             <div class="right-panel">
                 <div class="panel-header">
-                    <h2 id="server-type-title" class="animated-title">🖥️ RP SERVERS</h2>
-                    <div class="navigation-buttons">
-                        <button id="prev-button" class="nav-button" title="Previous server type">◀ Previous</button>
-                        <button id="next-button" class="nav-button" title="Next server type">Next ▶</button>
+                    <h2>🖥️ SERVER STATUS</h2>
+                    <div class="rotation-controls">
+                        <button id="prev-server-button" class="nav-button" title="Previous Server Type">◀</button>
+                        <span id="server-indicator" class="section-indicator">1 / 7</span>
+                        <button id="next-server-button" class="nav-button" title="Next Server Type">▶</button>
                     </div>
                 </div>
-                <div id="server-status-message" class="status-message"></div>
-                <div class="table-container">
-                    <table id="server-table" class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Server Name</th>
-                                <th>Type</th>
-                                <th>Env</th>
-                                <th>Status</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="5" class="loading">Loading...</td></tr>
-                        </tbody>
-                    </table>
+
+                <!-- Server Rotation Container -->
+                <div class="rotation-container server-rotation-container">
+                    <!-- Section 1: RP Servers -->
+                    <div class="server-section rotation-section active" data-server-section="1">
+                        <h3>RP Servers</h3>
+                        <div id="server-status-message-1" class="status-message"></div>
+                        <div class="table-container">
+                            <table class="data-table server-table">
+                                <thead>
+                                    <tr>
+                                        <th>Server Name</th>
+                                        <th>Type</th>
+                                        <th>Env</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="server-tbody-1">
+                                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: AEM Servers -->
+                    <div class="server-section rotation-section" data-server-section="2">
+                        <h3>AEM Servers</h3>
+                        <div id="server-status-message-2" class="status-message"></div>
+                        <div class="table-container">
+                            <table class="data-table server-table">
+                                <thead>
+                                    <tr>
+                                        <th>Server Name</th>
+                                        <th>Type</th>
+                                        <th>Env</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="server-tbody-2">
+                                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: EESOF Applications -->
+                    <div class="server-section rotation-section" data-server-section="3">
+                        <h3>EESOF Applications</h3>
+                        <div id="server-status-message-3" class="status-message"></div>
+                        <div class="table-container">
+                            <table class="data-table server-table">
+                                <thead>
+                                    <tr>
+                                        <th>Server Name</th>
+                                        <th>Type</th>
+                                        <th>Env</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="server-tbody-3">
+                                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Ruby Applications -->
+                    <div class="server-section rotation-section" data-server-section="4">
+                        <h3>Ruby Applications</h3>
+                        <div id="server-status-message-4" class="status-message"></div>
+                        <div class="table-container">
+                            <table class="data-table server-table">
+                                <thead>
+                                    <tr>
+                                        <th>Server Name</th>
+                                        <th>Type</th>
+                                        <th>Env</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="server-tbody-4">
+                                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Ping Monitor -->
+                    <div class="server-section rotation-section" data-server-section="5">
+                        <h3>Ping Monitor</h3>
+                        <div id="server-status-message-5" class="status-message"></div>
+                        <div class="table-container">
+                            <table class="data-table server-table">
+                                <thead>
+                                    <tr>
+                                        <th>Server Name</th>
+                                        <th>Type</th>
+                                        <th>Env</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="server-tbody-5">
+                                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 6: New Relic Monitors -->
+                    <div class="server-section rotation-section" data-server-section="6">
+                        <h3>New Relic Monitors</h3>
+                        <div id="server-status-message-6" class="status-message"></div>
+                        <div class="table-container">
+                            <table class="data-table server-table">
+                                <thead>
+                                    <tr>
+                                        <th>Server Name</th>
+                                        <th>Type</th>
+                                        <th>Env</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="server-tbody-6">
+                                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 7: SSL Certificates -->
+                    <div class="server-section rotation-section" data-server-section="7">
+                        <h3>SSL Certificates</h3>
+                        <div id="server-status-message-7" class="status-message"></div>
+                        <div class="table-container">
+                            <table class="data-table server-table">
+                                <thead>
+                                    <tr>
+                                        <th>Server Name</th>
+                                        <th>Type</th>
+                                        <th>Env</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="server-tbody-7">
+                                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
