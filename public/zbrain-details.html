@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zbrain Details - SRE Monitoring</title>
+    <link rel="stylesheet" href="zbrain-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <button id="back-button" class="back-button" onclick="window.location.href='/'">◀ Back to Dashboard</button>
+                <h1>🔗 ZBRAIN CONNECTIVITY DETAILS</h1>
+            </div>
+            <div class="header-info">
+                Last Update: <span id="last-update">-</span>
+            </div>
+        </header>
+
+        <!-- Failure Alert Banner -->
+        <div id="zbrain-failure-banner" class="failure-banner" style="display: none;">
+            <div class="failure-banner-header">
+                <span class="failure-icon">⚠️</span>
+                <span class="failure-title">ZBRAIN FAILURES DETECTED</span>
+            </div>
+            <div id="zbrain-failure-details" class="failure-details"></div>
+        </div>
+
+        <div class="zbrain-details-content">
+            <div class="zbrain-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Total URLs</div>
+                    <div id="total-urls" class="stat-value">-</div>
+                </div>
+                <div class="stat-card stat-success">
+                    <div class="stat-label">Up</div>
+                    <div id="up-count" class="stat-value">-</div>
+                </div>
+                <div class="stat-card stat-failure">
+                    <div class="stat-label">Down</div>
+                    <div id="down-count" class="stat-value">-</div>
+                </div>
+            </div>
+
+            <div class="zbrain-details-section">
+                <div class="section-header">
+                    <h2>All Zbrain URLs</h2>
+                    <div class="filter-controls">
+                        <button id="filter-all" class="filter-button active">All</button>
+                        <button id="filter-down" class="filter-button">Down Only</button>
+                        <button id="filter-up" class="filter-button">Up Only</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table zbrain-details-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>URL</th>
+                                <th>Status</th>
+                                <th>Status Code</th>
+                                <th>Last Refresh Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="zbrain-details-tbody">
+                            <tr><td colspan="5" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="zbrain-details.js"></script>
+</body>
+</html>

@@ -591,6 +591,7 @@ function formatNumber(num) {
     return parseInt(num).toLocaleString();
 }
 
+
 // Start auto-refresh timer (5 minutes)
 function startAutoRefresh() {
     refreshTimer = setInterval(() => {
@@ -1609,19 +1610,20 @@ function createZoneBandwidthComChart(ctx, history, forecast, forecastMonth, fore
                     tension: 0,
                     order: 1
                 },
-                {
-                    label: 'Low Projection',
-                    data: [...Array(historicalData.length).fill(null), forecast.com_bandwidth.low],
-                    borderColor: '#22c55e',
-                    backgroundColor: '#22c55e',
-                    borderWidth: 0,
-                    fill: false,
-                    pointRadius: 8,
-                    pointStyle: 'rectRot',
-                    pointBackgroundColor: '#22c55e',
-                    tension: 0,
-                    order: 1
-                }
+                // Low Projection - COMMENTED OUT
+                // {
+                //     label: 'Low Projection',
+                //     data: [...Array(historicalData.length).fill(null), forecast.com_bandwidth.low],
+                //     borderColor: '#22c55e',
+                //     backgroundColor: '#22c55e',
+                //     borderWidth: 0,
+                //     fill: false,
+                //     pointRadius: 8,
+                //     pointStyle: 'rectRot',
+                //     pointBackgroundColor: '#22c55e',
+                //     tension: 0,
+                //     order: 1
+                // }
             ]
         },
         options: {

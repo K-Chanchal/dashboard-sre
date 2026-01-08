@@ -981,3 +981,49 @@ body {
     margin-bottom: 12px;
     color: #4FC3F7;
 }
+
+/* Zbrain Connectivity Status Section */
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Zbrain Button Section - Only for main dashboard */
+.zbrain-button-section {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.zbrain-button {
+    background: rgba(129, 199, 132, 0.2);
+    border: 1px solid #81C784;
+    color: #81C784;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.zbrain-button:hover {
+    background: rgba(129, 199, 132, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(129, 199, 132, 0.4);
+}

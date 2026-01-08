@@ -193,6 +193,36 @@ app.get('/api/monitoring/usage', async (req, res) => {
     }
 });
 
+app.get('/api/monitoring/zbrain', async (req, res) => {
+    try {
+        const db = getDbPool();
+
+        // Fetch Zbrain URL status from database
+        // Try to fetch all columns to handle any column name variations
+        const [zbrainStatus] = await db.query(`
+            SELECT *
+            FROM Zbrain_url_status
+            ORDER BY
+                CASE
+                    WHEN UPPER(COALESCE(status, '')) IN ('DOWN', 'FAILED', 'ERROR', 'OFFLINE') THEN 1
+                    WHEN UPPER(COALESCE(status, '')) LIKE '%FAIL%' THEN 1
+                    ELSE 2
+                END
+        `);
+
+        console.log(`Zbrain status fetched: ${zbrainStatus.length} records`);
+        if (zbrainStatus.length > 0) {
+            console.log('Sample Zbrain record:', zbrainStatus[0]);
+        }
+
+        res.json(zbrainStatus);
+    } catch (error) {
+        console.error('Error fetching Zbrain status:', error);
+        console.error('Error details:', error.message);
+        res.status(500).json({ error: 'Failed to fetch Zbrain status data', details: error.message });
+    }
+});
+
 app.get('/api/monitoring/forecast', async (req, res) => {
     try {
         const db = getDbPool();
