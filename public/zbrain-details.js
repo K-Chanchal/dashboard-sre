@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://qnw5w902f4.execute-api.us-west-2.amazonaws.com/default/api';
 const REFRESH_INTERVAL = 60000; // 1 minute
 
 let refreshTimer;
