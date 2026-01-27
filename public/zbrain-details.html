@@ -3,75 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zbrain Details - SRE Monitoring</title>
+    <title>Zbrain Connectivity Details - SRE Monitoring</title>
     <link rel="stylesheet" href="zbrain-styles.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <button id="back-button" class="back-button" onclick="window.location.href='/'">◀ Back to Dashboard</button>
-                <h1>🔗 ZBRAIN CONNECTIVITY DETAILS</h1>
+                <a href="/" class="back-button">
+                    <i data-lucide="arrow-left" class="icon"></i>
+                    Back to Dashboard
+                </a>
+                <h1>Zbrain Connectivity Details</h1>
             </div>
             <div class="header-info">
-                Last Update: <span id="last-update">-</span>
+                <span class="last-update-label">Last Update:</span>
+                <span id="last-update" class="last-update-value">-</span>
             </div>
         </header>
 
         <!-- Failure Alert Banner -->
-        <div id="zbrain-failure-banner" class="failure-banner" style="display: none;">
-            <div class="failure-banner-header">
-                <span class="failure-icon">⚠️</span>
-                <span class="failure-title">ZBRAIN FAILURES DETECTED</span>
+        <div id="zbrain-failure-banner" class="alert-banner" style="display: none;">
+            <div class="alert-banner-content">
+                <i data-lucide="alert-triangle" class="alert-icon"></i>
+                <span id="failure-count-text" class="alert-text">0 URLs are currently unreachable</span>
             </div>
-            <div id="zbrain-failure-details" class="failure-details"></div>
         </div>
 
-        <div class="zbrain-details-content">
-            <div class="zbrain-stats">
+        <main class="main-content">
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label">Total URLs</div>
+                    <div class="stat-header">
+                        <span class="stat-label">Total URLs</span>
+                        <i data-lucide="link" class="stat-icon"></i>
+                    </div>
                     <div id="total-urls" class="stat-value">-</div>
                 </div>
                 <div class="stat-card stat-success">
-                    <div class="stat-label">Up</div>
-                    <div id="up-count" class="stat-value">-</div>
+                    <div class="stat-header">
+                        <span class="stat-label">Up</span>
+                        <i data-lucide="check-circle" class="stat-icon success"></i>
+                    </div>
+                    <div id="up-count" class="stat-value success">-</div>
                 </div>
-                <div class="stat-card stat-failure">
-                    <div class="stat-label">Down</div>
-                    <div id="down-count" class="stat-value">-</div>
+                <div class="stat-card stat-danger">
+                    <div class="stat-header">
+                        <span class="stat-label">Down</span>
+                        <i data-lucide="x-circle" class="stat-icon danger"></i>
+                    </div>
+                    <div id="down-count" class="stat-value danger">-</div>
                 </div>
             </div>
 
-            <div class="zbrain-details-section">
-                <div class="section-header">
-                    <h2>All Zbrain URLs</h2>
-                    <div class="filter-controls">
-                        <button id="filter-all" class="filter-button active">All</button>
-                        <button id="filter-down" class="filter-button">Down Only</button>
-                        <button id="filter-up" class="filter-button">Up Only</button>
+            <!-- URL Table Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">All Zbrain URLs</h2>
+                    <div class="controls">
+                        <!-- Status Filter Dropdown -->
+                        <select id="status-filter" class="select-input">
+                            <option value="all">All Status</option>
+                            <option value="down">Down Only</option>
+                            <option value="up">Up Only</option>
+                        </select>
+                        <!-- Search Input -->
+                        <div class="search-wrapper">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" id="search-input" class="search-input" placeholder="Search...">
+                        </div>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table class="data-table zbrain-details-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>URL</th>
-                                <th>Status</th>
-                                <th>Status Code</th>
-                                <th>Last Refresh Time</th>
-                            </tr>
-                        </thead>
-                        <tbody id="zbrain-details-tbody">
-                            <tr><td colspan="5" class="loading">Loading...</td></tr>
-                        </tbody>
-                    </table>
+
+                <!-- Environment Filter Buttons -->
+                <div class="env-filter-row">
+                    <span class="env-label">Environment:</span>
+                    <div class="env-buttons">
+                        <button class="env-button active" data-env="ALL">ALL</button>
+                        <button class="env-button" data-env="PROD">PROD</button>
+                        <button class="env-button" data-env="TEST">TEST</button>
+                        <button class="env-button" data-env="DEV">DEV</button>
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-index">#</th>
+                                    <th class="col-app sortable" data-sort="appName">
+                                        Application Name
+                                        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+                                    </th>
+                                    <th class="col-url sortable" data-sort="url">
+                                        URL
+                                        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+                                    </th>
+                                    <th class="col-env sortable" data-sort="env">
+                                        Env
+                                        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+                                    </th>
+                                    <th class="col-usecase sortable" data-sort="useCase">
+                                        Use Case
+                                        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+                                    </th>
+                                    <th class="col-status sortable" data-sort="status">
+                                        Status
+                                        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+                                    </th>
+                                    <th class="col-code sortable" data-sort="code">
+                                        Code
+                                        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+                                    </th>
+                                    <th class="col-expires sortable" data-sort="keyExpires">
+                                        Key Expires On
+                                        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+                                    </th>
+                                    <th class="col-refresh sortable" data-sort="lastRefresh">
+                                        Last Refresh Date
+                                        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="zbrain-details-tbody">
+                                <tr><td colspan="9" class="loading">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p id="table-info" class="table-info">Showing 0 of 0 URLs</p>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
     <script src="zbrain-details.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
 </body>
 </html>
