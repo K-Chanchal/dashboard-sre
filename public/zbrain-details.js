@@ -368,7 +368,7 @@ function createZbrainRow(item, rowNumber) {
     row.innerHTML = `
         <td class="tabular-nums text-muted">${rowNumber}</td>
         <td>${escapeHtml(getAppName(item))}</td>
-        <td>${escapeHtml(url)}</td>
+        <td>${escapeHtml(url)} </td>
         <td>
             <span class="badge badge-env ${envBadgeClass}">${escapeHtml(getEnv(item))}</span>
         </td>
