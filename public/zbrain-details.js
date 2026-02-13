@@ -199,6 +199,10 @@ function getLastRefresh(item) {
     const dateStr = item.LAST_REFRESH_TIME || item.last_refresh_time || item.LAST_REFRESH_DATE || item.last_refresh_date || '';
     return formatDateTime(dateStr);
 }
+function getDaysRemaining(item) {
+    const remainingDays = item.remaining_days || '';
+    return remainingDays
+}
 
 // Format date to readable format (e.g., "Jan 31, 2026")
 function formatDate(dateStr) {
@@ -258,6 +262,8 @@ function getColumnValue(item, column) {
             return getKeyExpiresOn(item);
         case 'lastRefresh':
             return getLastRefresh(item);
+        case 'daysRemaining':
+            return getDaysRemaining(item);
         default:
             return '';
     }
@@ -368,7 +374,7 @@ function createZbrainRow(item, rowNumber) {
     row.innerHTML = `
         <td class="tabular-nums text-muted">${rowNumber}</td>
         <td>${escapeHtml(getAppName(item))}</td>
-        <td>${escapeHtml(url)} </td>
+        <td>${escapeHtml(url)}</td>
         <td>
             <span class="badge badge-env ${envBadgeClass}">${escapeHtml(getEnv(item))}</span>
         </td>
@@ -382,6 +388,7 @@ function createZbrainRow(item, rowNumber) {
         <td class="tabular-nums" style="text-align: center;">${escapeHtml(getStatusCode(item))}</td>
         <td class="text-muted">${escapeHtml(getKeyExpiresOn(item))}</td>
         <td class="text-muted">${escapeHtml(getLastRefresh(item))}</td>
+        <td class="text-muted">${escapeHtml(getDaysRemaining(item))}</td>
     `;
 
     return row;
