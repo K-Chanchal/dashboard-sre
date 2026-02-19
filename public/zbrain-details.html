@@ -89,6 +89,13 @@
                     </div>
                 </div>
 
+                <div class="env-filter-row label-filter-row">
+                    <span class="env-label">Labels :</span>
+                    <div class="env-buttons" id="label-buttons">
+                        <button class="env-button label-button active" data-label="ALL">ALL</button>
+                    </div>
+                </div>
+
                 <div class="card-content">
                     <div class="table-wrapper">
                         <table class="data-table">
@@ -108,7 +115,7 @@
                                         <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                     </th>
                                     <th class="col-usecase sortable" data-sort="useCase">
-                                        Use Case
+                                        Label
                                         <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                     </th>
                                     <th class="col-status sortable" data-sort="status">
@@ -123,12 +130,12 @@
                                         Key Expires On
                                         <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                     </th>
-                                    <th class="col-refresh sortable" data-sort="lastRefresh">
-                                        Last Refresh Date
+                                    <th class="col-refresh sortable" data-sort="daysRemaining">
+                                        Days Remaining
                                         <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                     </th>
-                                     <th class="col-refresh sortable" data-sort="daysRemaining">
-                                        Days Remaining
+                                    <th class="col-refresh sortable" data-sort="lastRefresh">
+                                        Last Refresh Date
                                         <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                     </th>
                                 </tr>
