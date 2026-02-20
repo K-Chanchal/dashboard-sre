@@ -3,6 +3,7 @@ require('dotenv').config();
   const cors = require('cors');
   const mysql = require('mysql2/promise');
   const path = require('path');
+    const fs = require('fs/promises');
 
   const app = express();
   const PORT = process.env.PORT || 3000;
@@ -40,7 +41,156 @@ require('dotenv').config();
       return pool;
   }
 
+  const CUSTOM_LABELS_CONFIG_PATH = path.join(__dirname, 'zbrain-custom-labels-config.json');
+
+  function normalizeLabel(label) {
+      return (label || '').toString().trim().toUpperCase();
+  }
+
+  function sanitizeCustomLabelNames(source) {
+      const sanitized = {};
+      if (!source || typeof source !== 'object') {
+          return sanitized;
+      }
+
+      Object.entries(source).forEach(([rawKey, rawValue]) => {
+          const normalizedKey = normalizeLabel(rawKey);
+          if (!normalizedKey || normalizedKey === 'ALL') {
+              return;
+          }
+
+          if (typeof rawValue !== 'string') {
+              return;
+          }
+
+          const trimmedValue = rawValue.trim();
+          sanitized[normalizedKey] = trimmedValue || normalizedKey;
+      });
+
+      return sanitized;
+  }
+
+  function sanitizeCustomRowLabels(source) {
+      const sanitized = {};
+      if (!source || typeof source !== 'object') {
+          return sanitized;
+      }
+
+      Object.entries(source).forEach(([rawRowKey, rawLabels]) => {
+          const rowKey = String(rawRowKey || '').trim();
+          if (!rowKey) {
+              return;
+          }
+
+          const values = Array.isArray(rawLabels) ? rawLabels : [rawLabels];
+          const normalizedList = [];
+
+          values.forEach(rawValue => {
+              const normalizedLabel = normalizeLabel(rawValue);
+              if (!normalizedLabel || normalizedLabel === 'ALL' || normalizedLabel === '-') {
+                  return;
+              }
+
+              if (!normalizedList.includes(normalizedLabel)) {
+                  normalizedList.push(normalizedLabel);
+              }
+          });
+
+          if (normalizedList.length > 0) {
+              sanitized[rowKey] = normalizedList;
+          }
+      });
+
+      return sanitized;
+  }
+
+  function sanitizeLabelsConfig(source) {
+      return {
+          labelNames: sanitizeCustomLabelNames(source?.labelNames),
+          rowLabels: sanitizeCustomRowLabels(source?.rowLabels)
+      };
+  }
+
+  async function ensureLabelsConfigFile() {
+      try {
+          await fs.access(CUSTOM_LABELS_CONFIG_PATH);
+      } catch {
+          const emptyConfig = { labelNames: {}, rowLabels: {} };
+          await fs.writeFile(CUSTOM_LABELS_CONFIG_PATH, JSON.stringify(emptyConfig, null, 2));
+      }
+  }
+
+  async function readLabelsConfig() {
+      await ensureLabelsConfigFile();
+
+      try {
+          const raw = await fs.readFile(CUSTOM_LABELS_CONFIG_PATH, 'utf8');
+          const parsed = JSON.parse(raw);
+          return sanitizeLabelsConfig(parsed);
+      } catch (error) {
+          console.error('Failed to read custom labels config, using defaults:', error.message);
+          return { labelNames: {}, rowLabels: {} };
+      }
+  }
+
+  async function writeLabelsConfig(config) {
+      const sanitized = sanitizeLabelsConfig(config);
+      await fs.writeFile(CUSTOM_LABELS_CONFIG_PATH, JSON.stringify(sanitized, null, 2));
+      return sanitized;
+  }
+
   // ==================== API ROUTES ====================
+
+  app.get('/api/monitoring/zbrain/labels-config', async (req, res) => {
+      try {
+          const config = await readLabelsConfig();
+          res.json(config);
+      } catch (error) {
+          console.error('Error fetching custom labels config:', error);
+          res.status(500).json({ error: 'Failed to fetch custom labels config' });
+      }
+  });
+
+  app.put('/api/monitoring/zbrain/labels-config', async (req, res) => {
+      try {
+          const saved = await writeLabelsConfig(req.body || {});
+          res.json(saved);
+      } catch (error) {
+          console.error('Error saving custom labels config:', error);
+          res.status(500).json({ error: 'Failed to save custom labels config' });
+      }
+  });
+
+  app.delete('/api/monitoring/zbrain/labels-config/:label', async (req, res) => {
+      try {
+          const normalizedLabel = normalizeLabel(req.params.label);
+          if (!normalizedLabel || normalizedLabel === 'ALL') {
+              return res.status(400).json({ error: 'Invalid label' });
+          }
+
+          const currentConfig = await readLabelsConfig();
+          if (!currentConfig.labelNames[normalizedLabel]) {
+              return res.status(404).json({ error: 'Label not found' });
+          }
+
+          delete currentConfig.labelNames[normalizedLabel];
+          Object.keys(currentConfig.rowLabels).forEach(rowKey => {
+              const remainingLabels = (currentConfig.rowLabels[rowKey] || []).filter(label => label !== normalizedLabel);
+              if (remainingLabels.length === 0) {
+                  delete currentConfig.rowLabels[rowKey];
+                  return;
+              }
+
+              currentConfig.rowLabels[rowKey] = remainingLabels;
+          });
+
+          const saved = await writeLabelsConfig(currentConfig);
+          res.json(saved);
+      } catch (error) {
+          console.error('Error deleting custom label:', error);
+          res.status(500).json({ error: 'Failed to delete custom label' });
+      }
+  });
 
   // Get all server status monitoring data
   app.get('/api/monitoring/servers', async (req, res) => {

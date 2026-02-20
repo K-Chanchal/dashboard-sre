@@ -1,8 +1,6 @@
 // Configuration
 const API_BASE_URL = 'https://qnw5w902f4.execute-api.us-west-2.amazonaws.com/default/api';
 const REFRESH_INTERVAL = 60000; // 1 minute
-const CUSTOM_LABELS_STORAGE_KEY = 'zbrainCustomLabelsV1';
-const CUSTOM_ROW_LABELS_STORAGE_KEY = 'zbrainCustomRowLabelsV1';
 
 // State
 let refreshTimer;
@@ -19,10 +17,9 @@ let pendingLabelRowKey = null;
 let pendingLabelError = '';
 
 // Initialize page on load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('Zbrain Details page initialized');
-    loadCustomLabels();
-    loadCustomRowLabels();
+    await loadCustomLabels();
     fetchZbrainData();
     startAutoRefresh();
     setupEventListeners();
@@ -634,31 +631,26 @@ function sanitizeCustomLabelNames(source) {
     return sanitized;
 }
 
-function loadCustomLabels() {
+async function loadCustomLabels() {
     try {
-        const raw = localStorage.getItem(CUSTOM_LABELS_STORAGE_KEY);
-        if (!raw) return;
-
-        const parsed = JSON.parse(raw);
-        const namesFromCurrentFormat = sanitizeCustomLabelNames(parsed?.labelNames);
-        if (Object.keys(namesFromCurrentFormat).length > 0) {
-            customLabelNames = namesFromCurrentFormat;
-            return;
+        const timestamp = new Date().getTime();
+        const response = await fetch(`${API_BASE_URL}/monitoring/zbrain/labels-config?_=${timestamp}`);
+        if (!response.ok) {
+            throw new Error(`Failed to load labels config: ${response.status}`);
         }
 
-        // Backward compatibility: older format may have stored labels at the root object.
-        customLabelNames = sanitizeCustomLabelNames(parsed);
+        const payload = await response.json();
+        customLabelNames = sanitizeCustomLabelNames(payload?.labelNames);
+        customRowLabels = sanitizeCustomRowLabels(payload?.rowLabels);
     } catch (error) {
-        console.error('Failed to load custom labels:', error);
+        console.error('Failed to load custom labels config:', error);
         customLabelNames = {};
+        customRowLabels = {};
     }
 }
 
-function saveCustomLabels() {
-    const payload = {
-        labelNames: customLabelNames,
-    };
-    localStorage.setItem(CUSTOM_LABELS_STORAGE_KEY, JSON.stringify(payload));
+async function saveCustomLabels() {
+    await saveCustomRowLabels();
 }
 
 function sanitizeCustomRowLabels(source) {
@@ -695,23 +687,31 @@ function sanitizeCustomRowLabels(source) {
     return sanitized;
 }
 
-function loadCustomRowLabels() {
-    try {
-        const raw = localStorage.getItem(CUSTOM_ROW_LABELS_STORAGE_KEY);
-        if (!raw) {
-            customRowLabels = {};
-            return;
-        }
-
-        customRowLabels = sanitizeCustomRowLabels(JSON.parse(raw));
-    } catch (error) {
-        console.error('Failed to load row labels:', error);
-        customRowLabels = {};
-    }
+async function loadCustomRowLabels() {
+    await loadCustomLabels();
 }
 
-function saveCustomRowLabels() {
-    localStorage.setItem(CUSTOM_ROW_LABELS_STORAGE_KEY, JSON.stringify(customRowLabels));
+async function saveCustomRowLabels() {
+    const payload = {
+        labelNames: customLabelNames,
+        rowLabels: customRowLabels,
+    };
+
+    const response = await fetch(`${API_BASE_URL}/monitoring/zbrain/labels-config`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to save labels config: ${response.status}`);
+    }
+
+    const savedConfig = await response.json();
+    customLabelNames = sanitizeCustomLabelNames(savedConfig?.labelNames);
+    customRowLabels = sanitizeCustomRowLabels(savedConfig?.rowLabels);
 }
 
 function handleRowLabelEdit(rowKey) {
@@ -745,7 +745,7 @@ function closeInlineLabelEditor() {
     }
 }
 
-function submitInlineLabelEditor() {
+async function submitInlineLabelEditor() {
     if (!pendingLabelRowKey) {
         return;
     }
@@ -779,13 +779,24 @@ function submitInlineLabelEditor() {
 
     if (!customLabelNames[normalized]) {
         customLabelNames[normalized] = trimmed;
-        saveCustomLabels();
     }
 
     const existingLabels = customRowLabels[pendingLabelRowKey] || [];
     if (!existingLabels.includes(normalized)) {
         customRowLabels[pendingLabelRowKey] = [...existingLabels, normalized];
-        saveCustomRowLabels();
+    }
+
+    try {
+        await saveCustomRowLabels();
+    } catch (error) {
+        console.error('Failed to save custom label:', error);
+        pendingLabelError = 'Unable to save label right now. Please try again.';
+        displayZbrainData();
+        requestAnimationFrame(() => {
+            const nextInput = document.getElementById('row-label-inline-input');
+            if (nextInput) nextInput.focus();
+        });
+        return;
     }
 
     showLabels(allZbrainData);
@@ -793,23 +804,27 @@ function submitInlineLabelEditor() {
     closeInlineLabelEditor();
 }
 
-function deleteCustomLabel(normalizedLabel) {
+async function deleteCustomLabel(normalizedLabel) {
     if (!customLabelNames[normalizedLabel]) {
         return;
     }
 
-    delete customLabelNames[normalizedLabel];
-    Object.keys(customRowLabels).forEach(rowKey => {
-        const remainingLabels = (customRowLabels[rowKey] || []).filter(label => label !== normalizedLabel);
-        if (remainingLabels.length === 0) {
-            delete customRowLabels[rowKey];
-            return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/monitoring/zbrain/labels-config/${encodeURIComponent(normalizedLabel)}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete label: ${response.status}`);
         }
 
-        customRowLabels[rowKey] = remainingLabels;
-    });
-    saveCustomLabels();
-    saveCustomRowLabels();
+        const updatedConfig = await response.json();
+        customLabelNames = sanitizeCustomLabelNames(updatedConfig?.labelNames);
+        customRowLabels = sanitizeCustomRowLabels(updatedConfig?.rowLabels);
+    } catch (error) {
+        console.error('Failed to delete custom label:', error);
+        return;
+    }
 
     if (currentLabelFilter === normalizedLabel) {
         currentLabelFilter = 'ALL';
